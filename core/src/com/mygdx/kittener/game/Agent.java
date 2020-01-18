@@ -1,77 +1,161 @@
 package com.mygdx.kittener.game;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 
+/**
+ * Class which represents an agent (in the case of "Kittener", a cat) and all information that
+ * agent needs.
+ * @author Brandon Townsend
+ * @version 17 January 2020
+ */
 public class Agent extends Rectangle {
-    /** The identification number for this agent. */
-    private int ID;
+    /** The identification number of this agent. */
+    private int     id;
 
-    /** The texture for this agent. */
+    /** The texture this agent should be currently displayed as. */
     private Texture texture;
 
-    /** The fitness of this agent. */
-    private float fitness;
+    /** The score of this agent. */
+    private int     score;
 
     /** The last y-coordinate the agent was located at. */
-    private float lastY;
+    private float   lastY;
 
-    /** Variable representing if the agent is dead or not. */
+    /** Boolean to determine whether or not this agent is dead. */
     private boolean isDead;
 
-    /** Timer keeping track of how long the agent stands still. */
-    private float stillTimer;
-
-    /** Array that keeps track of the distance between an agent and all hazards in the game. */
-    private float[] visionArray;
+    /** Timer to keep track of how long the agent has "stood still". */
+    private float   stillTimer;
 
     /**
-     * Constructor for our agent.
-     * @param texture The texture for the agent.
-     * @param ID The identification number for the agent.
-     * @param numHazards The number of hazards in the game used to determine the length of our
-     *                   vision array.
+     * An array of the agents vision. Currently holds distances between the agent and game
+     * objects.
      */
-    public Agent(int ID, Texture texture, int numHazards) {
-        this.ID = ID;
-        this.texture = texture;
-        this.fitness = 0.0f;
-        this.lastY = 0.0f;
-        this.isDead = false;
-        this.stillTimer = 0.0f;
-        this.visionArray = new float[numHazards];
+    private float[] vision;
+
+    /**
+     * Constructor for an agent.
+     * @param id The identification number for this agent.
+     * @param texture The starting texture it should be displayed as.
+     * @param arraySize The size of the agents vision array.
+     * @param xLocation The starting x-coordinate to spawn the agent at.
+     */
+    Agent(int id, Texture texture, int arraySize, float xLocation) {
+        super(xLocation, 0, 32, 16);
+        this.id         = id;
+        this.texture    = texture;
+        this.score      = 0;
+        this.lastY      = 0f;
+        this.isDead     = false;
+        this.stillTimer = 0f;
+        this.vision     = new float[arraySize];
     }
 
     /**
-     * Returns the texture to be applied to this agent.
-     * @return The texture to be applied to this agent.
+     * Returns this agents identification number.
+     * @return The identification number for this agent.
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
+     * Returns the texture currently being displayed for this agent.
+     * @return The texture currently being displayed for this agent.
      */
     public Texture getTexture() {
         return texture;
     }
 
     /**
-     * Returns whether or not this agent is dead.
-     * @return True if agent is dead, false otherwise.
-     */
-    public boolean isDead() {
-        return isDead;
-    }
-
-    /**
-     * Sets this agents texture.
-     * @param texture The texture to now be applied to our agent.
+     * Sets the texture that should be displayed.
+     * @param texture The new texture to show this agent as.
      */
     public void setTexture(Texture texture) {
         this.texture = texture;
     }
 
     /**
-     * Sets this agents last y-coordinate location.
-     * @param lastY The last y-coordinate the agent was at.
+     * Returns this agents score.
+     * @return This agents score.
+     */
+    public int getScore() {
+        return score;
+    }
+
+    /**
+     * Sets this agents score to the supplied one.
+     * @param score The new score of this agent.
+     */
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    /**
+     * Returns the last y-coordinate this agent was located at.
+     * @return The last y-coordinate this agent was located at.
+     */
+    public float getLastY() {
+        return lastY;
+    }
+
+    /**
+     * Sets this agents last y-coordinate to the supplied one.
+     * @param lastY The new y-coordinate for this agent.
      */
     public void setLastY(float lastY) {
         this.lastY = lastY;
+    }
+
+    /**
+     * Returns whether or not this agent is dead.
+     * @return True if dead, false otherwise.
+     */
+    public boolean isDead() {
+        return isDead;
+    }
+
+    /**
+     * Tells this agent whether or not it is dead.
+     * @param dead The new boolean value to determine death.
+     */
+    public void setDead(boolean dead) {
+        isDead = dead;
+    }
+
+    /**
+     * Returns how long the agent has been standing still.
+     * @return How long the agent has been standing still.
+     */
+    public float getStillTimer() {
+        return stillTimer;
+    }
+
+    /**
+     * Sets the standing still timer to the supplied time.
+     * @param stillTimer The new time the timer should hold.
+     */
+    public void setStillTimer(float stillTimer) {
+        this.stillTimer = stillTimer;
+    }
+
+    /**
+     * Returns the vision array of this agent.
+     * @return The vision array of this agent.
+     */
+    public float[] getVision() {
+        return vision;
+    }
+
+    /**
+     * Sets this agents vision array to the new values passed in by the supplied array. Divides
+     * them by 32, as that is the length of a side of a tile.
+     * @param vision The new vision array.
+     */
+    public void setVision(float[] vision) {
+        for(int i = 0; i < vision.length; i++) {
+            this.vision[i] = vision[i] / 32;
+        }
     }
 }

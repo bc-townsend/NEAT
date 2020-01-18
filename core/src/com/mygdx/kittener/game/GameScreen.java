@@ -19,7 +19,10 @@ public class GameScreen extends ScreenAdapter {
     private final MainGame game;
 
     /** The constant number of agents we should spawn. */
-    private final int NUM_AGENTS = 20;
+    private final int NUM_AGENTS = 10;
+
+    /** Variable to keep track of the highest overall score we have seen. */
+    private int highestOverallScore = 0;
 
     /** A timer in which we delay the spawning of the next generation. */
     private float delayTimer;
@@ -48,7 +51,7 @@ public class GameScreen extends ScreenAdapter {
     private Texture catRight;
 
     /** List of all hazards in the game. */
-//    private ArrayList<Hazard> hazards;
+    private ArrayList<Hazard> hazards;
 
     /** List of all agents in the game. */
     private ArrayList<Agent> agents;
@@ -60,7 +63,7 @@ public class GameScreen extends ScreenAdapter {
         this.game = game;
 
         // Setting up some needed game variables.
-        delayTimer = 0.0f;
+        delayTimer = 0f;
         leftBounds = (-32 * 5);
         rightBounds = this.game.getWidth() + (32 * 5);
 
@@ -82,22 +85,60 @@ public class GameScreen extends ScreenAdapter {
         camera = new OrthographicCamera();
         camera.setToOrtho(false, this.game.getWidth(), this.game.getHeight());
 
+        // Creating the map objects.
+        hazards = new ArrayList<>(NUM_AGENTS);
+        spawnMapObjects();
+
         // Creating the game agents.
         agents = new ArrayList<>(NUM_AGENTS);
         spawnAgents();
 
-        // Creating the tile map background.
+        // Creating the tiled map background.
         TiledMap map = new TmxMapLoader().load("core/assets/maps/map_no_water.tmx");
         renderer = new OrthogonalTiledMapRenderer(map, 1);
     }
 
+    /**
+     * Adds the agents to our list of agents.
+     */
     private void spawnAgents() {
         for(int i = 0; i < NUM_AGENTS; i++) {
-            Agent agent = new Agent(i, catBack, 0);
+            Agent agent = new Agent(i, catBack, 0, game.getWidth() / 2f);
             agents.add(agent);
         }
     }
 
+    /**
+     * Helper method used to spawn various map objects. Hazards take the form of:
+     *      width, height, column (pixels), row (pixels), texture, and speed.
+     */
+    private void spawnMapObjects() {
+        // Hazards on the seventh row from the bottom.
+        hazards.add(new Hazard(32, 32, -16, 32*6, yellowCar, Speeds.RIGHT_MED.speed()));
+        hazards.add(new Hazard(32, 32, -80, 32*6, yellowCar, Speeds.RIGHT_MED.speed()));
+        hazards.add(new Hazard(32, 32, leftBounds+16, 32*6, yellowCar, Speeds.RIGHT_MED.speed()));
+
+        // Hazards on the eighth row from the bottom.
+        hazards.add(new Hazard(64, 32, game.getWidth(), 32*7, bus, Speeds.LEFT_SLOW.speed()));
+        hazards.add(new Hazard(64, 32, rightBounds, 32*7, bus, Speeds.LEFT_SLOW.speed()));
+
+        // Hazards on the ninth row from the bottom.
+        hazards.add(new Hazard(32, 32, rightBounds, 32*8, raceCar, Speeds.LEFT_FAST.speed()));
+
+        // Hazards on the tenth row from the bottom.
+        hazards.add(new Hazard(64, 32, game.getWidth()+32, 32*9, bus, Speeds.LEFT_SLOW.speed()));
+        hazards.add(new Hazard(64, 32, rightBounds-32, 32*9, bus, Speeds.LEFT_SLOW.speed()));
+
+        // Hazards on the eleventh row from the bottom.
+        hazards.add(new Hazard(32, 32, -32, 32*10, yellowCar, Speeds.RIGHT_MED.speed()));
+        hazards.add(new Hazard(32, 32, -96, 32*10, yellowCar, Speeds.RIGHT_MED.speed()));
+        hazards.add(new Hazard(32, 32, leftBounds, 32*10, yellowCar, Speeds.RIGHT_MED.speed()));
+    }
+
+    /**
+     * Renders this screen every frame. Contains all game logic.
+     * @param delta The time between two frames.
+     */
     @Override
     public void render(float delta) {
         // Add time to our delayTimer
@@ -120,46 +161,228 @@ public class GameScreen extends ScreenAdapter {
         // Begin a new batch and draw all objects.
         game.batch.begin();
 
+        // Draws all the hazards.
+        for(Hazard hazard : hazards) {
+            game.batch.draw(hazard.getTexture(), hazard.getX(), hazard.getY());
+        }
+
         // Draws all agents.
         for(Agent agent : agents) {
-            game.batch.draw(agent.getTexture(), agent.x, agent.y);
+            game.batch.draw(agent.getTexture(), agent.getX(), agent.getY());
         }
 
         // Outputs statistics to the screen.
-        String stats = String.format("High Score: %s\nGeneration: %d", 1000, 1);
-        game.font.draw(game.batch, stats, 5, 64);
+        String stats = String.format("Overall High Score: %d\n" +
+                                     "Current High Score: %d\n" +
+                                     "Generation: %d",
+                                     highestOverallScore, getHighScore(), 1);
+        game.font.draw(game.batch, stats, 4, 80);
 
         // Ending our sprite batch.
         game.batch.end();
 
+        // Each hazard moving.
+        updateHazards(delta);
+
         // Each agent moving.
+        updateAgents(delta);
+
+        // Check collision.
+        checkCollisions();
+
+        // If all agents are dead, set the final fitness values for this generation and reset.
+        if(areAllAgentsDead()) {
+            if(delayTimer >= 4f) {
+                resetGame();
+            }
+        } else {
+            delayTimer = 0;
+        }
+    }
+
+    /**
+     * Checks to see whether agents have collided with any map objects.
+     */
+    private void checkCollisions() {
+        for(Agent agent : agents) {
+            if(!agent.isDead()) {
+                for(Hazard hazard : hazards) {
+                    if(hazard.overlaps(agent)) {
+                        agent.setTexture(death);
+                        agent.setDead(true);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper method to control the hazards' movements.
+     * @param delta The time between two frames.
+     */
+    private void updateHazards(float delta) {
+        for(Hazard hazard : hazards) {
+            hazard.setX(hazard.getX() + (hazard.getSpeed() * delta));
+
+            if(hazard.getX() > rightBounds) {
+                hazard.setX(leftBounds);
+            } else if(hazard.getX() < leftBounds) {
+                hazard.setX(rightBounds);
+            }
+        }
+    }
+
+    /**
+     * Helper method that controls each agents' movements.
+     * @param delta The time between two frames.
+     */
+    private void updateAgents(float delta) {
         for(Agent agent : agents) {
 
             // Perform the following if the agent is not dead.
             if(!agent.isDead()) {
+                double[] output = {Math.random() + Math.random(), Math.random(), Math.random(),
+                        Math.random(), Math.random()};
+
                 int dir = 0;
+                for(int i = 0; i < output.length; i++) {
+                    if(output[i] > output[dir]) {
+                        dir = i;
+                    }
+                }
 
                 switch(dir) {
                     case 0: // Moving up.
-                        agent.y += Speeds.RIGHT_MED.move(delta);
+                        agent.setY(agent.getY() + Speeds.RIGHT_MED.move(delta));
                         agent.setTexture(catBack);
                         break;
                     case 1: // Moving down.
-                        agent.y += Speeds.LEFT_MED.move(delta);
+                        agent.setY(agent.getY() + Speeds.LEFT_MED.move(delta));
                         agent.setTexture(catFront);
                         break;
                     case 2: // Moving left.
-                        agent.x += Speeds.LEFT_MED.move(delta);
+                        agent.setX(agent.getX() + Speeds.LEFT_MED.move(delta));
                         agent.setTexture(catLeft);
                         break;
                     case 3: // Moving right.
-                        agent.x += Speeds.RIGHT_MED.move(delta);
+                        agent.setX(agent.getX() + Speeds.RIGHT_MED.move(delta));
                         agent.setTexture(catRight);
                         break;
                     default: // Choosing not to move.
                         break;
                 }
+
+                // Make sure the agents do not escape the game bounds.
+                if(agent.getX() < 0) {
+                    agent.setX(0);
+                } else if(agent.getX() + agent.getWidth() > game.getWidth()) {
+                    agent.setX(game.getWidth() - agent.getWidth());
+                }
+                if(agent.getY() < 0) {
+                    agent.setY(0);
+                } else if(agent.getY() >= game.getHeight()) {
+                    agent.setY(0f);
+                    agent.setLastY(0f);
+                }
+
+                int prevScore = agent.getScore();
+                int newScore = calculateAgentScore(agent);
+
+                // If the agent has not increased in score, add to the stillness timer.
+                if(prevScore >= newScore) {
+                    agent.setStillTimer(agent.getStillTimer() + delta);
+
+                    // If an agent is still for longer than 8 seconds, we kill it off.
+                    if(agent.getStillTimer() > 8f) {
+                        agent.setTexture(death);
+                        agent.setDead(true);
+                    }
+                } else {
+                    agent.setStillTimer(0);
+                }
             }
         }
+    }
+
+    /**
+     * Calculates the score an agent should be set to.
+     * @param agent The agent to calculate the score for.
+     * @return The score.
+     */
+    private int calculateAgentScore(Agent agent) {
+        int prevScore = agent.getScore();
+        int score = 0;
+        float lastY = agent.getLastY();
+
+        if(agent.getY() > lastY) {
+            score = (int) (agent.getY() - lastY) * 10 + prevScore;
+            agent.setScore(score);
+            agent.setLastY(agent.getY());
+        }
+
+        return score;
+    }
+
+    /**
+     * Returns the highest score achieved this generation.
+     * @return The highest score achieved this generation.
+     */
+    private int getHighScore() {
+        int highScore = 0;
+        for(Agent agent : agents) {
+            if(agent.getScore() > highScore) {
+                highScore = agent.getScore();
+            }
+        }
+
+        if(highScore > highestOverallScore) {
+            highestOverallScore = highScore;
+        }
+        return highScore;
+    }
+
+    /**
+     * Checks to see whether all of our agents are dead.
+     * @return True if all agents are dead, false otherwise.
+     */
+    private boolean areAllAgentsDead() {
+        for(Agent agent : agents) {
+            if(!agent.isDead()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Resets the game objects back to their original positions for the next generation.
+     */
+    private void resetGame() {
+        //TODO Note: the developer can determine if they want map objects to spawn again every
+        // generation or just keep going. For the moment, I just have them going.
+        //hazards.clear();
+        //spawnMapObjects();
+        agents.clear();
+        spawnAgents();
+    }
+
+    /**
+     * Removes all textures that have been loaded upon the closing of this screen.
+     */
+    @Override
+    public void dispose() {
+        super.dispose();
+        bus.dispose();
+        raceCar.dispose();
+        yellowCar.dispose();
+        turtle.dispose();
+        shortLog.dispose();
+        mediumLog.dispose();
+        longLog.dispose();
+        death.dispose();
+        catBack.dispose();
+        catFront.dispose();
+        catLeft.dispose();
+        catRight.dispose();
     }
 }

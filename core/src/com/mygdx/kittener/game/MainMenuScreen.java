@@ -13,7 +13,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
  * Class which represents the first screen that users see, the main menu screen. Gives players to
  * option to start a new simulation or load from an older one.
  * @author Brandon Townsend
- * @version 16 December 2019
+ * @version 17 January 2020
  */
 public class MainMenuScreen extends ScreenAdapter {
     /** A reference the game class from which we can switch screens. */
@@ -56,8 +56,8 @@ public class MainMenuScreen extends ScreenAdapter {
         game.batch.begin();
 
         // The string of text for the menu.
-        String menu_text = "Welcome to Kittener\nPress (1) to start\nPress (2) to load";
-        game.font.draw(game.batch, menu_text, 0, 232);
+        String menuText = "Welcome to Kittener\nPress (1) to start\nPress (2) to load";
+        game.font.draw(game.batch, menuText, 4, 248);
         game.batch.end();
 
         // If the (1) key is pressed, start a new game.
