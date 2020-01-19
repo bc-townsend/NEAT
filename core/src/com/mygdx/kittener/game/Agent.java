@@ -3,11 +3,13 @@ package com.mygdx.kittener.game;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 
+import java.util.Arrays;
+
 /**
  * Class which represents an agent (in the case of "Kittener", a cat) and all information that
  * agent needs.
  * @author Brandon Townsend
- * @version 17 January 2020
+ * @version 18 January 2020
  */
 public class Agent extends Rectangle {
     /** The identification number of this agent. */
@@ -41,7 +43,7 @@ public class Agent extends Rectangle {
      * @param arraySize The size of the agents vision array.
      * @param xLocation The starting x-coordinate to spawn the agent at.
      */
-    Agent(int id, Texture texture, int arraySize, float xLocation) {
+    public Agent(int id, Texture texture, int arraySize, float xLocation) {
         super(xLocation, 0, 32, 16);
         this.id         = id;
         this.texture    = texture;
@@ -157,5 +159,33 @@ public class Agent extends Rectangle {
         for(int i = 0; i < vision.length; i++) {
             this.vision[i] = vision[i] / 32;
         }
+    }
+
+    /**
+     * Resets this agent back to its starting values.
+     * @param xPos The x-coordinate position to reset this agent to.
+     */
+    public void reset(float xPos) {
+        setX(xPos);
+        setY(0);
+        score      = 0;
+        lastY      = 0f;
+        isDead     = false;
+        stillTimer = 0f;
+        Arrays.fill(vision, 0f);
+    }
+
+    /**
+     * Override of base equals(). Two agents are equal if they have the same identification number.
+     * @param obj The object to check for equality.
+     * @return True if they have the same id number, false otherwise.
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Agent) {
+            Agent agent = (Agent) obj;
+            return agent.getId() == id;
+        }
+        return false;
     }
 }

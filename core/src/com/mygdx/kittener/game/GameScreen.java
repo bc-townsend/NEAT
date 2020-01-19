@@ -10,10 +10,16 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import neat.Population;
 
 import java.util.ArrayList;
-import java.util.Random;
 
+/**
+ * The GameScreen class contains all game logic and is what controls the simulation and passes
+ * game information to the NEAT part of the application.
+ * @author Brandon Townsend
+ * @version 18 January 2020
+ */
 public class GameScreen extends ScreenAdapter {
     /** Reference to the game class which 'runs' the game. */
     private final MainGame game;
@@ -36,6 +42,9 @@ public class GameScreen extends ScreenAdapter {
     /** The camera attached to this screen. */
     private OrthographicCamera camera;
 
+    /** Map renderer. */
+    private TiledMapRenderer renderer;
+
     // All textures the game should use.
     private Texture bus;
     private Texture raceCar;
@@ -56,8 +65,8 @@ public class GameScreen extends ScreenAdapter {
     /** List of all agents in the game. */
     private ArrayList<Agent> agents;
 
-    /** Map renderer. */
-    private TiledMapRenderer renderer;
+    /** Population of all organisms in the game. */
+    private Population population;
 
     public GameScreen(final MainGame game) {
         this.game = game;
@@ -92,6 +101,9 @@ public class GameScreen extends ScreenAdapter {
         // Creating the game agents.
         agents = new ArrayList<>(NUM_AGENTS);
         spawnAgents();
+
+        // Assigning our constructed agents to our population.
+        population = new Population(agents, hazards.size(), 5);
 
         // Creating the tiled map background.
         TiledMap map = new TmxMapLoader().load("core/assets/maps/map_no_water.tmx");
@@ -175,7 +187,7 @@ public class GameScreen extends ScreenAdapter {
         String stats = String.format("Overall High Score: %d\n" +
                                      "Current High Score: %d\n" +
                                      "Generation: %d",
-                                     highestOverallScore, getHighScore(), 1);
+                                     highestOverallScore, getHighScore(), population.getGeneration());
         game.font.draw(game.batch, stats, 4, 80);
 
         // Ending our sprite batch.
@@ -194,6 +206,7 @@ public class GameScreen extends ScreenAdapter {
         if(areAllAgentsDead()) {
             if(delayTimer >= 4f) {
                 resetGame();
+                population.incrementGeneration();
             }
         } else {
             delayTimer = 0;
@@ -360,10 +373,12 @@ public class GameScreen extends ScreenAdapter {
     private void resetGame() {
         //TODO Note: the developer can determine if they want map objects to spawn again every
         // generation or just keep going. For the moment, I just have them going.
-        //hazards.clear();
-        //spawnMapObjects();
-        agents.clear();
-        spawnAgents();
+//        for(Hazard hazard : hazards) {
+//            hazard.reset();
+//        }
+        for(Agent agent : agents) {
+            agent.reset(game.getWidth() / 2f);
+        }
     }
 
     /**

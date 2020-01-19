@@ -1,0 +1,42 @@
+package neat;
+
+/**
+ * This enumeration contains coefficients that are used, so they are located in one single place.
+ * @author Chance Simmons and Brandon Townsend
+ * @version 18 January 2020
+ */
+public enum Coefficients {
+    // Mutation coefficients.
+    MUT_THRESH(.25),        // Chance that a mutation will happen at all.
+    LINK_WEIGHT_MUT(.8),    // Chance that a link's weight is mutated.
+    ADD_LINK_MUT(.15),       // Chance that a new link will be added.
+    ADD_NODE_MUT(.05),      // Chance that a new node will be added.
+
+    // Other coefficients.
+    DISJOINT_CO(1),
+    WEIGHT_CO(.5),
+    COMPAT_THRESH(.3),      // Two networks are compatible if above this value.
+    STALENESS_THRESH(8),    // A network is stale if above this value.
+    CULL_THRESH(.5),        // Used to cull the bottom half of a species.
+    BIAS_NODE_LINK_WEIGHT(5); // The value used on the bias nodes outgoing
+                                                        // links.
+
+    /** The value of this coefficient. */
+    private final double value;
+
+    /**
+     * Coefficient constructor. Assigns the supplied value.
+     * @param value The value for the coefficient.
+     */
+    Coefficients(double value) {
+        this.value = value;
+    }
+
+    /**
+     * Returns the value of the coefficient.
+     * @return The value of the coefficient.
+     */
+    public double getValue() {
+        return value;
+    }
+}

@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Rectangle;
  * Class which represents a hazard that could appear in the game. The hazards textures and the
  * speed it travels.
  * @author Brandon Townsend
- * @version 17 January 2020
+ * @version 18 January 2020
  */
 public class Hazard extends Rectangle {
     /** The texture this hazard should be currently displayed as. */
@@ -15,6 +15,10 @@ public class Hazard extends Rectangle {
 
     /** The speed at which this hazard should be currently traveling. */
     private float speed;
+
+    private int startXPos;
+    private int startYPos;
+    private float startSpeed;
 
     /**
      * Constructs a new hazard with the supplied information.
@@ -25,10 +29,13 @@ public class Hazard extends Rectangle {
      * @param texture The texture to be applied to the hazard.
      * @param speed The speed at which the hazard should initially travel.
      */
-    Hazard(int width, int height, int xPos, int yPos, Texture texture, float speed) {
+    public Hazard(int width, int height, int xPos, int yPos, Texture texture, float speed) {
         super(xPos, yPos, width, height);
         this.texture = texture;
         this.speed = speed;
+        this.startXPos = xPos;
+        this.startYPos = yPos;
+        this.startSpeed = speed;
     }
 
     /**
@@ -61,5 +68,14 @@ public class Hazard extends Rectangle {
      */
     public void setSpeed(float speed) {
         this.speed = speed;
+    }
+
+    /**
+     * Resets this hazard back to its starting position and speed.
+     */
+    public void reset() {
+        setX(startXPos);
+        setY(startYPos);
+        setSpeed(startSpeed);
     }
 }
