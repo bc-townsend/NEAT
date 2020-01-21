@@ -21,7 +21,7 @@ public class Population {
     private List<Species> species;
 
     /** Mapping of each game agent to their network. */
-    private Map<Agent, Network> organisms;
+    private Map<Integer, Network> organisms;
 
     /**
      * Constructors our population. Maps every agent to a newly formed network.
@@ -35,7 +35,7 @@ public class Population {
         organisms   = new HashMap<>();
 
         for(Agent agent : agents) {
-            organisms.put(agent, new Network(input, output));
+            organisms.put(agent.getId(), new Network(input, output));
         }
     }
 
@@ -52,5 +52,19 @@ public class Population {
      */
     public void incrementGeneration() {
         generation++;
+    }
+
+    /**
+     * Returns the network mapped to the supplied agent ID number key key.
+     * @param id The agent's ID number key to search for in our mapping.
+     * @return The network mapped to by the supplied agent key.
+     */
+    public Network getNetwork(int id) {
+        return organisms.get(id);
+    }
+
+
+    public void naturalSelection() {
+        organisms.get(0).mutate();
     }
 }

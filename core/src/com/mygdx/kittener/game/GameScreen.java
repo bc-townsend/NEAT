@@ -10,6 +10,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.math.Vector2;
 import neat.Population;
 
 import java.util.ArrayList;
@@ -115,7 +116,7 @@ public class GameScreen extends ScreenAdapter {
      */
     private void spawnAgents() {
         for(int i = 0; i < NUM_AGENTS; i++) {
-            Agent agent = new Agent(i, catBack, 0, game.getWidth() / 2f);
+            Agent agent = new Agent(i, catBack, hazards.size(), game.getWidth() / 2f);
             agents.add(agent);
         }
     }
@@ -204,6 +205,7 @@ public class GameScreen extends ScreenAdapter {
 
         // If all agents are dead, set the final fitness values for this generation and reset.
         if(areAllAgentsDead()) {
+//            population.naturalSelection();
             if(delayTimer >= 4f) {
                 resetGame();
                 population.incrementGeneration();
@@ -254,8 +256,9 @@ public class GameScreen extends ScreenAdapter {
 
             // Perform the following if the agent is not dead.
             if(!agent.isDead()) {
-                double[] output = {Math.random() + Math.random(), Math.random(), Math.random(),
-                        Math.random(), Math.random()};
+                updateAgentVision(agent);
+
+                double[] output = population.getNetwork(agent.getId()).feedForward(agent.getVision());
 
                 int dir = 0;
                 for(int i = 0; i < output.length; i++) {
@@ -264,39 +267,7 @@ public class GameScreen extends ScreenAdapter {
                     }
                 }
 
-                switch(dir) {
-                    case 0: // Moving up.
-                        agent.setY(agent.getY() + Speeds.RIGHT_MED.move(delta));
-                        agent.setTexture(catBack);
-                        break;
-                    case 1: // Moving down.
-                        agent.setY(agent.getY() + Speeds.LEFT_MED.move(delta));
-                        agent.setTexture(catFront);
-                        break;
-                    case 2: // Moving left.
-                        agent.setX(agent.getX() + Speeds.LEFT_MED.move(delta));
-                        agent.setTexture(catLeft);
-                        break;
-                    case 3: // Moving right.
-                        agent.setX(agent.getX() + Speeds.RIGHT_MED.move(delta));
-                        agent.setTexture(catRight);
-                        break;
-                    default: // Choosing not to move.
-                        break;
-                }
-
-                // Make sure the agents do not escape the game bounds.
-                if(agent.getX() < 0) {
-                    agent.setX(0);
-                } else if(agent.getX() + agent.getWidth() > game.getWidth()) {
-                    agent.setX(game.getWidth() - agent.getWidth());
-                }
-                if(agent.getY() < 0) {
-                    agent.setY(0);
-                } else if(agent.getY() >= game.getHeight()) {
-                    agent.setY(0f);
-                    agent.setLastY(0f);
-                }
+                moveAgent(agent, dir, delta);
 
                 int prevScore = agent.getScore();
                 int newScore = calculateAgentScore(agent);
@@ -314,6 +285,69 @@ public class GameScreen extends ScreenAdapter {
                     agent.setStillTimer(0);
                 }
             }
+        }
+    }
+
+    private void updateAgentVision(Agent agent) {
+        float[] vision = new float[hazards.size()];
+
+        // Grab the position of the agent.
+        Vector2 agentPos = new Vector2(agent.getX(), agent.getY());
+        Vector2 hazardPos = new Vector2();
+
+        for(int i = 0; i < hazards.size(); i++) {
+            Hazard hazard = hazards.get(i);
+            hazardPos.set(hazard.getX(), hazard.getY());
+
+            // Set the value in our vision array to the distance between the agent and all hazards.
+            // NOTE: I'm dividing by 32 as that's the tile length and I want to reduce the values
+            // of the distances, as they seem very large initially.
+            vision[i] = hazardPos.dst(agentPos) / 32;
+        }
+
+        agent.setVision(vision);
+    }
+
+    /**
+     * Moves a specified agent in a supplied direction and makes sure the agent does not escape
+     * the game bounds.
+     * @param agent The agent to move.
+     * @param direction The direction in which the agent should move.
+     * @param delta The time between frames.
+     */
+    private void moveAgent(Agent agent, int direction, float delta) {
+        switch(direction) {
+            case 0: // Moving up.
+                agent.setY(agent.getY() + Speeds.RIGHT_MED.move(delta));
+                agent.setTexture(catBack);
+                break;
+            case 1: // Moving down.
+                agent.setY(agent.getY() + Speeds.LEFT_MED.move(delta));
+                agent.setTexture(catFront);
+                break;
+            case 2: // Moving left.
+                agent.setX(agent.getX() + Speeds.LEFT_MED.move(delta));
+                agent.setTexture(catLeft);
+                break;
+            case 3: // Moving right.
+                agent.setX(agent.getX() + Speeds.RIGHT_MED.move(delta));
+                agent.setTexture(catRight);
+                break;
+            default: // Choosing not to move.
+                break;
+        }
+
+        // Make sure the agents do not escape the game bounds.
+        if(agent.getX() < 0) {
+            agent.setX(0);
+        } else if(agent.getX() + agent.getWidth() > game.getWidth()) {
+            agent.setX(game.getWidth() - agent.getWidth());
+        }
+        if(agent.getY() < 0) {
+            agent.setY(0);
+        } else if(agent.getY() >= game.getHeight()) {
+            agent.setY(0f);
+            agent.setLastY(0f);
         }
     }
 

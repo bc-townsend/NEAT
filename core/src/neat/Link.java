@@ -48,6 +48,14 @@ public class Link {
     }
 
     /**
+     * Returns this links input node ID.
+     * @return This links input node ID.
+     */
+    public int getInputNodeID() {
+        return inputNodeID;
+    }
+
+    /**
      * Returns this links output node.
      * @return This links output node.
      */
@@ -69,6 +77,14 @@ public class Link {
      */
     public boolean isEnabled() {
         return enabled;
+    }
+
+    /**
+     * Sets whether or not this link is enabled.
+     * @param enabled True if this link should be enabled, false if it should be disabled.
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     /**

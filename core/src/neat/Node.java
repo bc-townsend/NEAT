@@ -9,6 +9,9 @@ import java.util.List;
  * @version 18 January 2020
  */
 public class Node {
+    /** The input or bias layer should always been a value of 0. */
+    private final static int INPUT_BIAS_LAYER = 0;
+
     /** The identification number for this node. */
     private int id;
 
@@ -22,14 +25,14 @@ public class Node {
     private List<Link> outgoingLinks;
 
     /** The layer this node resides in. */
-    private NodeLayer layer;
+    private int layer;
 
     /**
      * Constructor for a node. Takes an identification number and layer for this node.
      * @param id The supplied identification number.
      * @param layer The supplied layer this node should reside in.
      */
-    public Node(int id, NodeLayer layer) {
+    public Node(int id, int layer) {
         this.id = id;
         this.inputValue = 0.0;
         this.outputValue = 0.0;
@@ -62,6 +65,14 @@ public class Node {
     }
 
     /**
+     * Returns the output value of this node.
+     * @return The output value of this node.
+     */
+    public double getOutputValue() {
+        return outputValue;
+    }
+
+    /**
      * Sets this nodes output value to the supplied one.
      * @param outputValue The supplied output value.
      */
@@ -81,8 +92,15 @@ public class Node {
      * Returns the layer this node resides on.
      * @return The layer this node resides on.
      */
-    public NodeLayer getLayer() {
+    public int getLayer() {
         return layer;
+    }
+
+    /**
+     * Increments this nodes layer by 1.
+     */
+    public void incrementLayer() {
+        this.layer++;
     }
 
     /**
@@ -91,7 +109,7 @@ public class Node {
      * nodes input.
      */
     public void activate() {
-        if(layer != NodeLayer.BIAS && layer != NodeLayer.INPUT) {
+        if(layer != INPUT_BIAS_LAYER) {
             outputValue = activationFunction(inputValue);
         }
 
@@ -119,18 +137,18 @@ public class Node {
      * @return True if the nodes are connected, false otherwise.
      */
     public boolean isConnectedTo(Node node) {
-        if(layer == NodeLayer.INPUT || layer == NodeLayer.HIDDEN || layer == NodeLayer.BIAS) {
-            for(Link link : outgoingLinks) {
-                if(link.getOutputNode().equals(node)) {
-                    return true;
+        if(layer != node.getLayer()) {
+            if(layer < node.getLayer()) {
+                for(Link link : outgoingLinks) {
+                    if(link.getOutputNode().equals(node)) {
+                        return true;
+                    }
                 }
-            }
-        }
-
-        if(node.getLayer() == NodeLayer.INPUT || node.getLayer() == NodeLayer.HIDDEN || node.getLayer() == NodeLayer.BIAS) {
-            for(Link link : node.getOutgoingLinks()) {
-                if(link.getOutputNode().equals(this)) {
-                    return true;
+            } else {
+                for(Link link : node.getOutgoingLinks()) {
+                    if(link.getOutputNode().equals(this)) {
+                        return true;
+                    }
                 }
             }
         }

@@ -7,9 +7,9 @@ package neat;
  */
 public enum Coefficients {
     // Mutation coefficients.
-    MUT_THRESH(.25),        // Chance that a mutation will happen at all.
-    LINK_WEIGHT_MUT(.8),    // Chance that a link's weight is mutated.
-    ADD_LINK_MUT(.15),       // Chance that a new link will be added.
+    CROSSOVER_THRESH(.25),  // Chance that crossover will occur.
+    LINK_WEIGHT_MUT(.8),    // Chance that a link weight mutation can occur.
+    ADD_LINK_MUT(.15),      // Chance that a new link will be added.
     ADD_NODE_MUT(.05),      // Chance that a new node will be added.
 
     // Other coefficients.

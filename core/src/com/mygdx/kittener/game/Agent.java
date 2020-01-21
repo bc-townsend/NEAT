@@ -156,9 +156,7 @@ public class Agent extends Rectangle {
      * @param vision The new vision array.
      */
     public void setVision(float[] vision) {
-        for(int i = 0; i < vision.length; i++) {
-            this.vision[i] = vision[i] / 32;
-        }
+        this.vision = vision;
     }
 
     /**
