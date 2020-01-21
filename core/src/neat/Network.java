@@ -82,7 +82,31 @@ public class Network {
         this.outputNodes = new Node[network.outputNodes.length];
         this.hiddenNodes = new ArrayList<>();
         this.biasNode = new Node(network.biasNode);
-        // TODO perform deep copy where the links are not different for every node.
+        for(int i = 0; i < network.inputNodes.length; i++) {
+            this.inputNodes[i] = new Node(network.inputNodes[i]);
+        }
+        for(Node node : network.hiddenNodes) {
+            this.hiddenNodes.add(new Node(node));
+        }
+        for(int i = 0; i < network.outputNodes.length; i++) {
+            this.outputNodes[i] = new Node(network.outputNodes[i]);
+        }
+        copyLinks(network);
+    }
+
+    /**
+     * Performs a deep copy of the links from a supplied network to this one.
+     * @param network The network to copy the links from.
+     */
+    private void copyLinks(Network network) {
+        for(Link link : network.links) {
+            Node input = this.getNode(link.getInputNodeID());
+            Node output = this.getNode(link.getOutputNode().getId());
+            assert input != null;
+            assert output != null;
+            addLink(input, output, link.getWeight());
+            this.links.get(this.links.size() - 1).setEnabled(link.isEnabled());
+        }
     }
 
     /**
@@ -105,6 +129,12 @@ public class Network {
         }
     }
 
+    /**
+     * Returns the link that connects the supplied input and output nodes.
+     * @param input The supplied input node.
+     * @param output The supplied output node.
+     * @return The link that connects the two supplied nodes.
+     */
     private Link getLink(Node input, Node output) {
         for(Link link : links) {
             if(link.getInputNodeID() == input.getId() && output.getId() == link.getOutputNode().getId()) {
@@ -289,6 +319,7 @@ public class Network {
 
         link.setEnabled(false);
         Node oldInput = getNode(link.getInputNodeID());
+        assert oldInput != null;
         int layer = (int) Math.ceil((oldInput.getLayer() + link.getOutputNode().getLayer()) / 2.0);
 
         // If the layer we're placing our new node was the previous output nodes layer, we
