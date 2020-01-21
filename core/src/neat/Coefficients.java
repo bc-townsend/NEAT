@@ -13,6 +13,7 @@ public enum Coefficients {
     ADD_NODE_MUT(.05),      // Chance that a new node will be added.
 
     // Other coefficients.
+    EXCESS_CO(.5),
     DISJOINT_CO(1),
     WEIGHT_CO(.5),
     COMPAT_THRESH(.3),      // Two networks are compatible if above this value.

@@ -31,10 +31,10 @@ public class Network {
     private Node biasNode;
 
     /** Counter to keep track of the number of nodes there are in our network. */
-    private int numNodes = 0;
+    private int numNodes;
 
     /** Counter to keep track of the number of current layers there are in our network. */
-    private int numLayers = 0;
+    private int numLayers;
 
     /**
      * Our network constructor. Builds an initial fully connected network of input and output nodes.
@@ -42,6 +42,8 @@ public class Network {
      * @param outputNum The number of output nodes to have.
      */
     public Network(int inputNum, int outputNum) {
+        numNodes = 0;
+        numLayers = 0;
         links = new ArrayList<>();
         inputNodes = new Node[inputNum];
         outputNodes = new Node[outputNum];
@@ -69,6 +71,21 @@ public class Network {
     }
 
     /**
+     * Copy constructor used to deep copy a network.
+     * @param network The network to copy.
+     */
+    public Network(Network network) {
+        this.numNodes = network.numNodes;
+        this.numLayers = network.numLayers;
+        this.links = new ArrayList<>();
+        this.inputNodes = new Node[network.inputNodes.length];
+        this.outputNodes = new Node[network.outputNodes.length];
+        this.hiddenNodes = new ArrayList<>();
+        this.biasNode = new Node(network.biasNode);
+        // TODO perform deep copy where the links are not different for every node.
+    }
+
+    /**
      * Helper function to fully connect the initial network of just input and output nodes. Also
      * attaches the bias node to each output node.
      */
@@ -86,6 +103,15 @@ public class Network {
             // the created one in the coefficients enumeration and uncomment the line below.
             // addLink(biasNode, output, Coefficients.BIAS_NODE_LINK_WEIGHT.getValue());
         }
+    }
+
+    private Link getLink(Node input, Node output) {
+        for(Link link : links) {
+            if(link.getInputNodeID() == input.getId() && output.getId() == link.getOutputNode().getId()) {
+                return link;
+            }
+        }
+        return null;
     }
 
     /**

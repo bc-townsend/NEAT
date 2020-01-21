@@ -40,6 +40,14 @@ public class Node {
         this.layer = layer;
     }
 
+    public Node(Node node) {
+        this.id = node.id;
+        this.inputValue = node.inputValue;
+        this.outputValue = node.outputValue;
+        this.outgoingLinks = new ArrayList<>();
+        this.layer = node.layer;
+    }
+
     /**
      * Returns this nodes identification number.
      * @return This nodes identification number.

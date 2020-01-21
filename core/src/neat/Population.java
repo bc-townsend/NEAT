@@ -65,6 +65,11 @@ public class Population {
 
 
     public void naturalSelection() {
-        organisms.get(0).mutate();
+        speciate();
+    }
+
+    private void speciate() {
+        Species test = new Species(0, organisms.get(0));
+        System.out.println("hello");
     }
 }

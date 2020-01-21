@@ -205,7 +205,7 @@ public class GameScreen extends ScreenAdapter {
 
         // If all agents are dead, set the final fitness values for this generation and reset.
         if(areAllAgentsDead()) {
-//            population.naturalSelection();
+            population.naturalSelection();
             if(delayTimer >= 4f) {
                 resetGame();
                 population.incrementGeneration();
