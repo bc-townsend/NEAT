@@ -19,14 +19,14 @@ import java.util.ArrayList;
  * The GameScreen class contains all game logic and is what controls the simulation and passes
  * game information to the NEAT part of the application.
  * @author Brandon Townsend
- * @version 18 January 2020
+ * @version 21 January 2020
  */
 public class GameScreen extends ScreenAdapter {
     /** Reference to the game class which 'runs' the game. */
     private final MainGame game;
 
     /** The constant number of agents we should spawn. */
-    private final int NUM_AGENTS = 10;
+    private final int NUM_AGENTS = 30;
 
     /** Variable to keep track of the highest overall score we have seen. */
     private int highestOverallScore = 0;
@@ -69,6 +69,14 @@ public class GameScreen extends ScreenAdapter {
     /** Population of all organisms in the game. */
     private Population population;
 
+    /** Keeps track of if we've already performed natural selection for this generation. */
+    private boolean performedNS;
+
+    /**
+     * Constructor for the main logic behind the game.
+     * @param game A back-reference to the application controller so we can switch screens if
+     *             need be.
+     */
     public GameScreen(final MainGame game) {
         this.game = game;
 
@@ -105,6 +113,7 @@ public class GameScreen extends ScreenAdapter {
 
         // Assigning our constructed agents to our population.
         population = new Population(agents, hazards.size(), 5);
+        performedNS = false;
 
         // Creating the tiled map background.
         TiledMap map = new TmxMapLoader().load("core/assets/maps/map_no_water.tmx");
@@ -181,7 +190,9 @@ public class GameScreen extends ScreenAdapter {
 
         // Draws all agents.
         for(Agent agent : agents) {
+            game.batch.setColor(agent.getColor());
             game.batch.draw(agent.getTexture(), agent.getX(), agent.getY());
+            game.batch.setColor(Color.WHITE);
         }
 
         // Outputs statistics to the screen.
@@ -205,10 +216,20 @@ public class GameScreen extends ScreenAdapter {
 
         // If all agents are dead, set the final fitness values for this generation and reset.
         if(areAllAgentsDead()) {
-            population.naturalSelection();
+            if(!performedNS) {
+                for (Agent agent : agents) {
+                    population.assignFitness(agent.getId(), agent.getScore());
+                }
+                population.naturalSelection();
+                for (Agent agent : agents) {
+                    population.assignColor(agent);
+                }
+                performedNS = true;
+            }
             if(delayTimer >= 4f) {
                 resetGame();
                 population.incrementGeneration();
+                performedNS = false;
             }
         } else {
             delayTimer = 0;
@@ -288,6 +309,11 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Updates the agent's vision array based on the distance between the agent and the hazards
+     * of the game.
+     * @param agent The agent whose vision array should be updated.
+     */
     private void updateAgentVision(Agent agent) {
         float[] vision = new float[hazards.size()];
 
@@ -405,13 +431,12 @@ public class GameScreen extends ScreenAdapter {
      * Resets the game objects back to their original positions for the next generation.
      */
     private void resetGame() {
-        //TODO Note: the developer can determine if they want map objects to spawn again every
-        // generation or just keep going. For the moment, I just have them going.
-//        for(Hazard hazard : hazards) {
-//            hazard.reset();
-//        }
+        for(Hazard hazard : hazards) {
+            hazard.reset();
+        }
         for(Agent agent : agents) {
             agent.reset(game.getWidth() / 2f);
+            agent.setTexture(catBack);
         }
     }
 

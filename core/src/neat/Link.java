@@ -6,7 +6,7 @@ import java.util.Random;
  * Represents a connection between two nodes in our network. Each connection is given an
  * innovation number which assists in crossover between two separate networks.
  * @author Chance Simmons and Brandon Townsend
- * @version 18 January 2020
+ * @version 21 January 2020
  */
 public class Link {
     /** The innovation number assigned to this link. */
@@ -69,6 +69,14 @@ public class Link {
      */
     public double getWeight() {
         return weight;
+    }
+
+    /**
+     * Sets this links weight to the supplied weight.
+     * @param weight The weight to set this link to.
+     */
+    public void setWeight(double weight) {
+        this.weight = weight;
     }
 
     /**

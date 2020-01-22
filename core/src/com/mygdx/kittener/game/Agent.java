@@ -1,5 +1,6 @@
 package com.mygdx.kittener.game;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -9,7 +10,7 @@ import java.util.Arrays;
  * Class which represents an agent (in the case of "Kittener", a cat) and all information that
  * agent needs.
  * @author Brandon Townsend
- * @version 18 January 2020
+ * @version 21 January 2020
  */
 public class Agent extends Rectangle {
     /** The identification number of this agent. */
@@ -29,6 +30,9 @@ public class Agent extends Rectangle {
 
     /** Timer to keep track of how long the agent has "stood still". */
     private float   stillTimer;
+
+    /** What color this agent should be displayed as. */
+    private Color color;
 
     /**
      * An array of the agents vision. Currently holds distances between the agent and game
@@ -52,6 +56,7 @@ public class Agent extends Rectangle {
         this.isDead     = false;
         this.stillTimer = 0f;
         this.vision     = new float[arraySize];
+        this.color      = new Color(1, 1, 1, 1);
     }
 
     /**
@@ -160,16 +165,32 @@ public class Agent extends Rectangle {
     }
 
     /**
+     * Returns the color this agent should be displayed as.
+     * @return The color this agent should be displayed as.
+     */
+    public Color getColor() {
+        return color;
+    }
+
+    /**
+     * Sets the display color of this agent to the supplied color.
+     * @param color The color to set this agent to.
+     */
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    /**
      * Resets this agent back to its starting values.
      * @param xPos The x-coordinate position to reset this agent to.
      */
     public void reset(float xPos) {
         setX(xPos);
         setY(0);
-        score      = 0;
-        lastY      = 0f;
-        isDead     = false;
-        stillTimer = 0f;
+        score       = 0;
+        lastY       = 0f;
+        isDead      = false;
+        stillTimer  = 0f;
         Arrays.fill(vision, 0f);
     }
 

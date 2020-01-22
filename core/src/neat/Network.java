@@ -6,7 +6,7 @@ import java.util.*;
  * Class which represents the "brain" of an organism. It is a connection of nodes via links in
  * which values are passed through and a certain value is chosen as the "correct" output.
  * @author Chance Simmons and Brandon Townsend
- * @version 20 January 2020
+ * @version 21 January 2020
  */
 public class Network {
     /**
@@ -36,6 +36,9 @@ public class Network {
     /** Counter to keep track of the number of current layers there are in our network. */
     private int numLayers;
 
+    /** The fitness that the agent assigned to this network scored. */
+    private int fitness;
+
     /**
      * Our network constructor. Builds an initial fully connected network of input and output nodes.
      * @param inputNum The number of input nodes to have.
@@ -44,6 +47,7 @@ public class Network {
     public Network(int inputNum, int outputNum) {
         numNodes = 0;
         numLayers = 0;
+        fitness = 0;
         links = new ArrayList<>();
         inputNodes = new Node[inputNum];
         outputNodes = new Node[outputNum];
@@ -77,6 +81,7 @@ public class Network {
     public Network(Network network) {
         this.numNodes = network.numNodes;
         this.numLayers = network.numLayers;
+        this.fitness = network.fitness;
         this.links = new ArrayList<>();
         this.inputNodes = new Node[network.inputNodes.length];
         this.outputNodes = new Node[network.outputNodes.length];
@@ -92,6 +97,30 @@ public class Network {
             this.outputNodes[i] = new Node(network.outputNodes[i]);
         }
         copyLinks(network);
+    }
+
+    /**
+     * Returns this network's fitness.
+     * @return This network's fitness.
+     */
+    public int getFitness() {
+        return fitness;
+    }
+
+    /**
+     * Sets this network's fitness to the supplied value.
+     * @param fitness The supplied value to overwrite this network's fitness.
+     */
+    public void setFitness(int fitness) {
+        this.fitness = fitness;
+    }
+
+    /**
+     * Returns the list of links that this network holds.
+     * @return The list of links that this network holds.
+     */
+    public List<Link> getLinks() {
+        return links;
     }
 
     /**
@@ -130,21 +159,6 @@ public class Network {
     }
 
     /**
-     * Returns the link that connects the supplied input and output nodes.
-     * @param input The supplied input node.
-     * @param output The supplied output node.
-     * @return The link that connects the two supplied nodes.
-     */
-    private Link getLink(Node input, Node output) {
-        for(Link link : links) {
-            if(link.getInputNodeID() == input.getId() && output.getId() == link.getOutputNode().getId()) {
-                return link;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Adds a specified link between the two supplied nodes with a supplied weight. Does NOT
      * randomly add a link to the network. Will not create a link if the two nodes are already
      * connected.
@@ -178,12 +192,13 @@ public class Network {
         for(Map.Entry<Integer, String> innovation : innovationList.entrySet()) {
             int key = innovation.getKey();
             String value = innovation.getValue();
+
             if(value.equals(innovationSearch)) {
                 innovationNumber = key;
                 found = true;
             }
         }
-        if(!found) {
+        if(!found) {    // If we did not find an existing innovation number, make a new one.
             innovationList.put(innovationNumber, innovationSearch);
         }
         return innovationNumber;
@@ -251,6 +266,9 @@ public class Network {
      * additional structure via new links or new nodes.
      */
     public void mutate() {
+        //todo add a toggle enabled mutation where the first disabled link encountered is toggled
+        // back on.
+
         // Mutation for link weight. Each link is either mutated or not each generation.
         for(Link link : links) {
             if(Math.random() < Coefficients.LINK_WEIGHT_MUT.getValue()) {
@@ -317,6 +335,14 @@ public class Network {
             link = links.get(random.nextInt(links.size()));
         } while(link.getInputNodeID() == biasNode.getId());
 
+        addNode(link);
+    }
+
+    /**
+     * Adds a node where the specified link used to be.
+     * @param link The location where the new node should be added.
+     */
+    private void addNode(Link link) {
         link.setEnabled(false);
         Node oldInput = getNode(link.getInputNodeID());
         assert oldInput != null;
@@ -378,5 +404,114 @@ public class Network {
         nodes.addAll(Arrays.asList(outputNodes));
 
         return nodes;
+    }
+
+    /**
+     * Determines if the supplied network is compatible with this network based on how closely it
+     * is related to this network.
+     * @param network The network to check for compatibility.
+     * @return True if it is compatible, false otherwise.
+     */
+    public boolean isCompatibleTo(Network network) {
+        double compatibility = 0.0;
+        int numDisjoint = getNumDisjointLinks(network);
+        double avgWeighDiff = getAverageWeightDiff(network.getLinks());
+        double largestGenomeSize = Math.max(links.size(), network.getLinks().size());
+
+        if(largestGenomeSize < 20) {
+            largestGenomeSize = 1;
+        }
+
+        compatibility += (Coefficients.DISJOINT_CO.getValue() * numDisjoint) / largestGenomeSize;
+        compatibility += Coefficients.WEIGHT_CO.getValue() * avgWeighDiff;
+
+        return compatibility <= Coefficients.COMPAT_THRESH.getValue();
+    }
+
+    /**
+     * Returns the number of links which are disjoint (i.e. they exist in one network, but not
+     * the other.
+     * @param network The network to check against the compatibility network.
+     * @return The number of disjoint links.
+     */
+    private int getNumDisjointLinks(Network network) {
+        int numDisjoint = 0;
+        List<Link> otherNetworkLinks = network.getLinks();
+        for(Link link : links) {
+            if(!otherNetworkLinks.contains(link)) {
+                numDisjoint++;
+            }
+        }
+
+        for(Link link : otherNetworkLinks) {
+            if(!links.contains(link)) {
+                numDisjoint++;
+            }
+        }
+        return numDisjoint;
+    }
+
+    /**
+     * Returns the average weight difference between the matching links of the compatibility
+     * network and the supplied list of links.
+     * @param links The list of links to check calculate differences with our compatibility network.
+     * @return The average weight difference between matching links.
+     */
+    private double getAverageWeightDiff(List<Link> links) {
+        int numMatching = 0;
+        double weightSum = 0.0;
+        for(Link link : this.links) {
+            boolean foundMatch = false;
+            for(int i = 0; !foundMatch && i < links.size(); i++) {
+                if(link.getInnovationNum() == links.get(i).getInnovationNum()) {
+                    weightSum += Math.abs(link.getWeight() - links.get(i).getWeight());
+                    numMatching++;
+                    foundMatch = true;
+                }
+            }
+        }
+
+        if(numMatching == 0) {
+            return 100;
+        }
+        return weightSum / numMatching;
+    }
+
+    /**
+     * Method that mimics crossover of genomes. Takes this network and lines up its links with
+     * the supplied network (parent 1 and parent 2). Any matching links (matching as in
+     * innovation numbers) will have their weight and enabled randomly selected from one of the
+     * parents. Then, any disjoint links should be added from the parent with the most fitness.
+     * If the fitness is equal, then disjoint links should be added from both.
+     * @param otherParent The other network to match links from.
+     * @return The crossed over network.
+     */
+    public Network crossover(Network otherParent) {
+        Network baby = new Network(this);
+
+        // Randomly inherit traits from one of the matching links.
+        for(Link link : baby.links) {
+            for(Link other : otherParent.getLinks()) {
+                if(link.getInnovationNum() == other.getInnovationNum()) {
+                    if(Math.random() < 0.5) {
+                        link.setWeight(other.getWeight());
+                        link.setEnabled(other.isEnabled());
+                    }
+                    break;
+                }
+            }
+        }
+
+        // FIXME: 1/22/2020
+//        if(otherParent.getFitness() == baby.getFitness()) {
+//            for(Link link : otherParent.getLinks()) {
+//                if(!baby.links.contains(link)) {
+//                    add the link to the baby
+//                    error arises when we attempt to add a link, but the baby does not have the
+//                    needed nodes.
+//                }
+//            }
+//        }
+        return baby;
     }
 }
