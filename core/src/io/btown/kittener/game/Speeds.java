@@ -1,4 +1,4 @@
-package com.mygdx.kittener.game;
+package io.btown.kittener.game;
 
 /**
  * Enumeration containing speeds for all objects in the game.
@@ -16,7 +16,7 @@ public enum Speeds {
     /**
      * The speed at which an object moves.
      */
-    private float objectSpeed;
+    public final float objectSpeed;
 
     /**
      * Constructor for the enum representing an object's speed.
@@ -27,15 +27,7 @@ public enum Speeds {
     }
 
     /**
-     * Returns the speed at which an object moves.
-     * @return The speed at which an object moves.
-     */
-    public float speed() {
-        return objectSpeed;
-    }
-
-    /**
-     * Moves an object based on its speed and the deltatime of the game.
+     * Moves an object based on its speed and the delta time of the game.
      * @param deltaTime The time between frames in the game.
      * @return How far the object should move.
      */

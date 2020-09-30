@@ -1,4 +1,4 @@
-package com.mygdx.kittener.game;
+package io.btown.kittener.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -17,7 +17,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
  */
 public class MainMenuScreen extends ScreenAdapter {
     /** A reference the game class from which we can switch screens. */
-    private final MainGame game;
+    private final MainGame GAME;
 
     /** A camera object to look at the game. */
     OrthographicCamera camera;
@@ -30,9 +30,9 @@ public class MainMenuScreen extends ScreenAdapter {
      * @param game Reference for the game class.
      */
     public MainMenuScreen(final MainGame game) {
-        this.game = game;
+        GAME = game;
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, this.game.getWidth(), this.game.getHeight());
+        camera.setToOrtho(false, GAME.getWidth(), GAME.getHeight());
         TiledMap background = new TmxMapLoader().load("core/assets/maps/map_no_water.tmx");
         renderer = new OrthogonalTiledMapRenderer(background, 1);
     }
@@ -50,19 +50,19 @@ public class MainMenuScreen extends ScreenAdapter {
         camera.update();
         renderer.setView(camera);
         renderer.render();
-        game.batch.setProjectionMatrix(camera.combined);
+        GAME.batch.setProjectionMatrix(camera.combined);
 
         // Begins what we should update to the screen.
-        game.batch.begin();
+        GAME.batch.begin();
 
         // The string of text for the menu.
         String menuText = "Welcome to Kittener\nPress (1) to start\nPress (2) to load";
-        game.font.draw(game.batch, menuText, 4, 248);
-        game.batch.end();
+        GAME.font.draw(GAME.batch, menuText, 4, 248);
+        GAME.batch.end();
 
         // If the (1) key is pressed, start a new game.
         if(Gdx.input.isKeyPressed(Input.Keys.NUM_1)) {
-            game.setScreen(game.gameScreen);
+            GAME.setScreen(GAME.gameScreen);
             dispose();
         }
 

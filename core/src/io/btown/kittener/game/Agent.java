@@ -1,4 +1,4 @@
-package com.mygdx.kittener.game;
+package io.btown.kittener.game;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -13,8 +13,10 @@ import java.util.Arrays;
  * @version 21 January 2020
  */
 public class Agent extends Rectangle {
+    private static int idCounter = 0;
+
     /** The identification number of this agent. */
-    private int     id;
+    private final int ID;
 
     /** The texture this agent should be currently displayed as. */
     private Texture texture;
@@ -42,14 +44,13 @@ public class Agent extends Rectangle {
 
     /**
      * Constructor for an agent.
-     * @param id The identification number for this agent.
      * @param texture The starting texture it should be displayed as.
      * @param arraySize The size of the agents vision array.
      * @param xLocation The starting x-coordinate to spawn the agent at.
      */
-    public Agent(int id, Texture texture, int arraySize, float xLocation) {
+    public Agent(Texture texture, int arraySize, float xLocation) {
         super(xLocation, 0, 32, 16);
-        this.id         = id;
+        ID = idCounter++;
         this.texture    = texture;
         this.score      = 0;
         this.lastY      = 0f;
@@ -63,8 +64,8 @@ public class Agent extends Rectangle {
      * Returns this agents identification number.
      * @return The identification number for this agent.
      */
-    public int getId() {
-        return id;
+    public int getID() {
+        return ID;
     }
 
     /**
@@ -203,8 +204,13 @@ public class Agent extends Rectangle {
     public boolean equals(Object obj) {
         if(obj instanceof Agent) {
             Agent agent = (Agent) obj;
-            return agent.getId() == id;
+            return agent.getID() == ID;
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return ID;
     }
 }

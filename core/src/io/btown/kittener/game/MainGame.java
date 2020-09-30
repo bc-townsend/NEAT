@@ -1,4 +1,4 @@
-package com.mygdx.kittener.game;
+package io.btown.kittener.game;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -12,10 +12,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  */
 public class MainGame extends com.badlogic.gdx.Game {
     /** The width of the application window. */
-    private int width;
+    private final int WIDTH;
 
     /** The height of the application window. */
-    private int height;
+    private final int HEIGHT;
 
     /** Sprite batch used to draw 2D shapes. */
     public SpriteBatch batch;
@@ -35,8 +35,8 @@ public class MainGame extends com.badlogic.gdx.Game {
      * @param height The height of the window.
      */
     public MainGame(int width, int height) {
-        this.width  = width;
-        this.height = height;
+        WIDTH  = width;
+        HEIGHT = height;
     }
 
     /**
@@ -44,7 +44,7 @@ public class MainGame extends com.badlogic.gdx.Game {
      * @return The width of the application window.
      */
     public int getWidth() {
-        return width;
+        return WIDTH;
     }
 
     /**
@@ -52,7 +52,7 @@ public class MainGame extends com.badlogic.gdx.Game {
      * @return The height of the application window.
      */
     public int getHeight() {
-        return height;
+        return HEIGHT;
     }
 
     /**

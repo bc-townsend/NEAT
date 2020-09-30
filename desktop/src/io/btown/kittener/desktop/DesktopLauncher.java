@@ -1,4 +1,4 @@
-package com.mygdx.kittener.desktop;
+package io.btown.kittener.desktop;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationListener;
@@ -6,7 +6,7 @@ import com.badlogic.gdx.Files;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.graphics.Color;
-import com.mygdx.kittener.game.MainGame;
+import io.btown.kittener.game.MainGame;
 
 /**
  * Launches the game of "Kittener", which is based upon the classic arcade game "Frogger".

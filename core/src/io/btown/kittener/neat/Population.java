@@ -1,6 +1,7 @@
-package neat;
+package io.btown.kittener.neat;
 
-import com.mygdx.kittener.game.Agent;
+import com.badlogic.gdx.graphics.Color;
+import io.btown.kittener.game.Agent;
 
 import java.util.*;
 
@@ -11,32 +12,32 @@ import java.util.*;
  * @version 21 January 2020
  */
 public class Population {
-    /** Keeps track of the generation of organisms we're at. */
+    /** Keeps track of the generation of organism we're on. */
     private int generation;
 
     /** List of every species in the game. */
-    private List<Species> species;
+    private final List<Species> species;
 
     /** Mapping of each game agent to their network. */
-    private Map<Integer, Network> organisms;
+    private final Map<Integer, Network> organisms;
 
     /** Identification number of the best agent. */
     private int bestAgentID;
 
     /**
      * Constructors our population. Maps every agent to a newly formed network.
-     * @param agents The list of agents to connect via mapping.
+     * @param numAgents The number of agents (aka organisms) we'll be forming.
      * @param input The number of inputs we're expecting.
      * @param output The number of outputs we're expecting.
      */
-    public Population(List<Agent> agents, int input, int output) {
+    public Population(int numAgents, int input, int output) {
         generation  = 0;
         species     = new ArrayList<>();
         organisms   = new HashMap<>();
         bestAgentID = 0;
 
-        for(Agent agent : agents) {
-            organisms.put(agent.getId(), new Network(input, output));
+        for(int i = 0; i < numAgents; i++) {
+            organisms.put(i, new Network(input, output));
         }
     }
 
@@ -71,30 +72,25 @@ public class Population {
      * @param fitness The score to be passed to the network.
      */
     public void assignFitness(int id, int fitness) {
-        organisms.get(id).setFitness(fitness);
+        getNetwork(id).setFitness(fitness);
     }
 
     /**
      * Sets the supplied agent with a certain species color.
-     * @param agent The agent to modify the color of.
+     * @param id The agent's ID to modify the color of.
+     * @return The color to assign the agent to.
      */
-    public void assignColor(Agent agent) {
-
-        //FIXME: 1/22/2020 This method should be checked. It looks like they could be getting
-        // assigned the wrong color, but I'm not sure.
-
+    public Color getColor(int id) {
         for(Species s : species) {
-            if(organisms.get(agent.getId()).isCompatibleTo(s.getCompatibilityNetwork())) {
-                agent.setColor(s.getColor());
-                break;
+            if(getNetwork(id).isCompatibleTo(s.getCompatibilityNetwork())) {
+                return s.getColor();
             }
         }
+        return null;
     }
 
     /**
      * Sets the best agent of this generation.
-     *todo currently is the best agent of the generation. Possibly entertain the idea of it
-     * being the best over all the generations and retain it through all of them.
      */
     private void setBestAgentID() {
         int bestFitness = organisms.get(0).getFitness();
@@ -124,7 +120,7 @@ public class Population {
 
         for(Species s : species) {
             // Directly clone the best network of the species.
-            babies.add(new Network(s.getOrganisms().get(s.getBestOrgID())));
+            babies.add(new Network(12, 12));
 
             // Find the correct number of babies and reproduce them.
             int numBabies = (int) Math.floor(s.getAverageFitness() / avgSum * organisms.size()) - 1;
@@ -202,7 +198,7 @@ public class Population {
     private void removeStaleSpecies() {
         for(int i = 0; i < species.size(); i++) {
             if(!species.get(i).getOrganisms().containsKey(bestAgentID)) {
-                if(species.get(i).getStaleness() >= Coefficients.STALENESS_THRESH.getValue()) {
+                if(species.get(i).getStaleness() >= Coefficients.STALENESS_THRESH.value) {
                     Species.takenColors.remove(species.get(i).getColor());
                     species.remove(species.get(i));
                     i--;

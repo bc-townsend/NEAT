@@ -1,4 +1,4 @@
-package neat;
+package io.btown.kittener.neat;
 
 import java.util.Random;
 
@@ -8,12 +8,12 @@ import java.util.Random;
  * @author Chance Simmons and Brandon Townsend
  * @version 21 January 2020
  */
-public class Link {
+public class Link implements Cloneable {
     /** The innovation number assigned to this link. */
-    private int innovationNum;
+    private final int innovationNum;
 
     /** The input node this link is connected to. */
-    private int inputNodeID;
+    private final int inputNodeID;
 
     /** The output node this link is connected to. */
     private Node outputNode;
@@ -31,6 +31,10 @@ public class Link {
      * @param inputNodeID The supplied id number for this links input node.
      * @param outputNode The supplied node for this links output node.
      */
+    public Link(int innovationNum, int inputNodeID, Node outputNode) {
+        this(innovationNum, inputNodeID, outputNode, Math.random() * 2 - 1);
+    }
+
     public Link(int innovationNum, int inputNodeID, Node outputNode, double weight) {
         this.innovationNum = innovationNum;
         this.inputNodeID = inputNodeID;
@@ -114,6 +118,17 @@ public class Link {
     }
 
     /**
+     * Sends the value from a node's activation function to its output node.
+     * @param value The value to pass through to the next node.
+     */
+    public void sendToOutput(double value) {
+        if(enabled) {
+            double inputValue = outputNode.getInputValue();
+            outputNode.setInputValue(inputValue + weight * value);
+        }
+    }
+
+    /**
      * Checks to see if a supplied object is the same link as this one.
      * @param obj The object to check equality against.
      * @return True if the object is a link and the innovation numbers are the same, false
@@ -126,5 +141,18 @@ public class Link {
             return other.getInnovationNum() == innovationNum;
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return innovationNum;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Link copy = (Link) super.clone();
+
+        copy.outputNode = (Node) this.outputNode.clone();
+        return copy;
     }
 }

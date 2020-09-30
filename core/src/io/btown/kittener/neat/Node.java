@@ -1,4 +1,4 @@
-package neat;
+package io.btown.kittener.neat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,12 +8,12 @@ import java.util.List;
  * @author Chance Simmons and Brandon Townsend
  * @version 18 January 2020
  */
-public class Node {
+public class Node implements Cloneable {
     /** The input or bias layer should always been a value of 0. */
     private final static int INPUT_BIAS_LAYER = 0;
 
     /** The identification number for this node. */
-    private int id;
+    private final int ID;
 
     /** The sum of inputs before the node is activated. */
     private double inputValue;
@@ -33,19 +33,11 @@ public class Node {
      * @param layer The supplied layer this node should reside in.
      */
     public Node(int id, int layer) {
-        this.id = id;
+        ID = id;
         this.inputValue = 0.0;
         this.outputValue = 0.0;
         this.outgoingLinks = new ArrayList<>();
         this.layer = layer;
-    }
-
-    public Node(Node node) {
-        this.id = node.id;
-        this.inputValue = node.inputValue;
-        this.outputValue = node.outputValue;
-        this.outgoingLinks = new ArrayList<>();
-        this.layer = node.layer;
     }
 
     /**
@@ -53,7 +45,7 @@ public class Node {
      * @return This nodes identification number.
      */
     public int getId() {
-        return id;
+        return ID;
     }
 
     /**
@@ -121,13 +113,7 @@ public class Node {
             outputValue = activationFunction(inputValue);
         }
 
-        for(Link link : outgoingLinks) {
-            if(link.isEnabled()) {
-                Node outputNode = link.getOutputNode();
-                double oldInputValue = outputNode.getInputValue();
-                outputNode.setInputValue(oldInputValue + link.getWeight() * outputValue);
-            }
-        }
+        outgoingLinks.forEach(link -> link.sendToOutput(outputValue));
     }
 
     /**
@@ -172,8 +158,35 @@ public class Node {
     public boolean equals(Object obj) {
         if(obj instanceof Node) {
             Node other = (Node) obj;
-            return id == other.getId();
+            return other.getId() == ID;
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return ID;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Node copy = (Node) super.clone();
+
+        copy.outgoingLinks = new ArrayList<>();
+
+        // For the purposes of this algorithm, cloning the links creates a problem, as each link
+        // must clone its output node, which calls this method again. Therefore, we'll wait to
+        // connect the nodes in the Network's clone method.
+
+//        this.outgoingLinks.forEach(link -> {
+//            try {
+//                Link copyLink = (Link) link.clone();
+//                copy.outgoingLinks.add(copyLink);
+//            } catch (CloneNotSupportedException e) {
+//                e.printStackTrace();
+//            }
+//        });
+
+        return copy;
     }
 }

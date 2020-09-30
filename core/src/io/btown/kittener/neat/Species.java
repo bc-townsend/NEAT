@@ -1,4 +1,4 @@
-package neat;
+package io.btown.kittener.neat;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Colors;
@@ -48,7 +48,6 @@ public class Species {
      * @param agentNetwork The network used by the first agent to be assigned to this species.
      */
     public Species(int agentID, Network agentNetwork) {
-        compatibilityNetwork = new Network(agentNetwork);
         organisms = new HashMap<>();
         organisms.put(agentID, compatibilityNetwork);
         bestOrgID = agentID;
@@ -85,8 +84,7 @@ public class Species {
      */
     public void setCompatibilityNetwork() {
         Object[] networks = organisms.values().toArray();
-        compatibilityNetwork =
-                new Network((Network) networks[new Random().nextInt(networks.length)]);
+        compatibilityNetwork = null;
     }
 
     /**
@@ -103,7 +101,7 @@ public class Species {
      * @param agentNetwork The network the agent uses.
      */
     public void addOrganism(int agentID, Network agentNetwork) {
-        organisms.put(agentID, new Network(agentNetwork));
+        organisms.put(agentID, null);
     }
 
     /**
@@ -185,10 +183,10 @@ public class Species {
                     maxFitness = otherFitness;
                 }
             }
-            survivors.put(maxOrganism, new Network(organisms.get(maxOrganism)));
+            survivors.put(maxOrganism, null);
             organisms.get(maxOrganism).setFitness(-1);
 
-            if(survivors.size() >= organisms.size() * Coefficients.CULL_THRESH.getValue()) {
+            if(survivors.size() >= organisms.size() * Coefficients.CULL_THRESH.value) {
                 break;
             }
         }
@@ -213,7 +211,7 @@ public class Species {
      */
     public Network reproduce() {
         Network baby;
-        if(Math.random() < Coefficients.CROSSOVER_THRESH.getValue()) {
+        if(Math.random() < Coefficients.CROSSOVER_THRESH.value) {
             Object[] networks = organisms.values().toArray();
             Network parent1 = (Network) networks[new Random().nextInt(networks.length)];
             Network parent2 = (Network) networks[new Random().nextInt(networks.length)];
@@ -224,7 +222,7 @@ public class Species {
             }
         } else {
             Object[] networks = organisms.values().toArray();
-            baby = new Network((Network) networks[new Random().nextInt(networks.length)]);
+            baby = new Network(12, 12);
         }
 
         baby.mutate();

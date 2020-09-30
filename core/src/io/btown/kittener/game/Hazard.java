@@ -1,4 +1,4 @@
-package com.mygdx.kittener.game;
+package io.btown.kittener.game;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
@@ -16,9 +16,9 @@ public class Hazard extends Rectangle {
     /** The speed at which this hazard should be currently traveling. */
     private float speed;
 
-    private int startXPos;
-    private int startYPos;
-    private float startSpeed;
+    private final int START_X_POS;
+    private final int START_Y_POS;
+    private final float START_SPEED;
 
     /**
      * Constructs a new hazard with the supplied information.
@@ -32,10 +32,10 @@ public class Hazard extends Rectangle {
     public Hazard(int width, int height, int xPos, int yPos, Texture texture, float speed) {
         super(xPos, yPos, width, height);
         this.texture = texture;
-        this.speed = speed;
-        this.startXPos = xPos;
-        this.startYPos = yPos;
-        this.startSpeed = speed;
+        START_X_POS = xPos;
+        START_Y_POS = yPos;
+        START_SPEED = speed;
+        this.speed = START_SPEED;
     }
 
     /**
@@ -74,8 +74,8 @@ public class Hazard extends Rectangle {
      * Resets this hazard back to its starting position and speed.
      */
     public void reset() {
-        setX(startXPos);
-        setY(startYPos);
-        setSpeed(startSpeed);
+        setX(START_X_POS);
+        setY(START_Y_POS);
+        setSpeed(START_SPEED);
     }
 }

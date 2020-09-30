@@ -1,4 +1,4 @@
-package neat;
+package io.btown.kittener.neat;
 
 import java.util.*;
 
@@ -72,31 +72,6 @@ public class Network {
 
         // Links our input nodes to output nodes and attaches the bias node to each output node.
         generateNetwork();
-    }
-
-    /**
-     * Copy constructor used to deep copy a network.
-     * @param network The network to copy.
-     */
-    public Network(Network network) {
-        this.numNodes = network.numNodes;
-        this.numLayers = network.numLayers;
-        this.fitness = network.fitness;
-        this.links = new ArrayList<>();
-        this.inputNodes = new Node[network.inputNodes.length];
-        this.outputNodes = new Node[network.outputNodes.length];
-        this.hiddenNodes = new ArrayList<>();
-        this.biasNode = new Node(network.biasNode);
-        for(int i = 0; i < network.inputNodes.length; i++) {
-            this.inputNodes[i] = new Node(network.inputNodes[i]);
-        }
-        for(Node node : network.hiddenNodes) {
-            this.hiddenNodes.add(new Node(node));
-        }
-        for(int i = 0; i < network.outputNodes.length; i++) {
-            this.outputNodes[i] = new Node(network.outputNodes[i]);
-        }
-        copyLinks(network);
     }
 
     /**
@@ -271,18 +246,18 @@ public class Network {
 
         // Mutation for link weight. Each link is either mutated or not each generation.
         for(Link link : links) {
-            if(Math.random() < Coefficients.LINK_WEIGHT_MUT.getValue()) {
+            if(Math.random() < Coefficients.LINK_WEIGHT_MUT.value) {
                 link.mutateWeight();
             }
         }
 
         // Mutation for adding a link between two random, unlinked nodes.
-        if(Math.random() < Coefficients.ADD_LINK_MUT.getValue()) {
+        if(Math.random() < Coefficients.ADD_LINK_MUT.value) {
             addLinkMutation();
         }
 
         // Mutation for adding a new node where a link previously was.
-        if(Math.random() < Coefficients.ADD_NODE_MUT.getValue()) {
+        if(Math.random() < Coefficients.ADD_NODE_MUT.value) {
             addNodeMutation();
         }
     }
@@ -422,10 +397,10 @@ public class Network {
             largestGenomeSize = 1;
         }
 
-        compatibility += (Coefficients.DISJOINT_CO.getValue() * numDisjoint) / largestGenomeSize;
-        compatibility += Coefficients.WEIGHT_CO.getValue() * avgWeighDiff;
+        compatibility += (Coefficients.DISJOINT_CO.value * numDisjoint) / largestGenomeSize;
+        compatibility += Coefficients.WEIGHT_CO.value * avgWeighDiff;
 
-        return compatibility <= Coefficients.COMPAT_THRESH.getValue();
+        return compatibility <= Coefficients.COMPAT_THRESH.value;
     }
 
     /**
@@ -487,7 +462,7 @@ public class Network {
      * @return The crossed over network.
      */
     public Network crossover(Network otherParent) {
-        Network baby = new Network(this);
+        Network baby = new Network(12, 12);
 
         // Randomly inherit traits from one of the matching links.
         for(Link link : baby.links) {

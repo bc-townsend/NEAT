@@ -1,4 +1,4 @@
-package com.mygdx.kittener.game;
+package io.btown.kittener.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
@@ -11,7 +11,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
-import neat.Population;
+import io.btown.kittener.neat.Population;
 
 import java.util.ArrayList;
 
@@ -23,10 +23,24 @@ import java.util.ArrayList;
  */
 public class GameScreen extends ScreenAdapter {
     /** Reference to the game class which 'runs' the game. */
-    private final MainGame game;
+    private final MainGame GAME;
+
+    // All textures the game should use.+
+    static final Texture bus = new Texture("core/assets/bus.png");
+    static final Texture raceCar = new Texture("core/assets/racecar.png");
+    static final Texture yellowCar = new Texture("core/assets/yellow_car.png");
+    static final Texture turtle = new Texture("core/assets/turtle.png");
+    static final Texture shortLog = new Texture("core/assets/log3.png");
+    static final Texture mediumLog = new Texture("core/assets/log4.png");
+    static final Texture longLog = new Texture("core/assets/log5.png");
+    static final Texture death = new Texture("core/assets/death.png");
+    static final Texture catBack = new Texture("core/assets/cat_back.png");
+    static final Texture catFront = new Texture("core/assets/cat_front.png");
+    static final Texture catLeft = new Texture("core/assets/cat_left.png");
+    static final Texture catRight = new Texture("core/assets/cat_right.png");
 
     /** The constant number of agents we should spawn. */
-    private final int NUM_AGENTS = 30;
+    private final int NUM_AGENTS = 100;
 
     /** Variable to keep track of the highest overall score we have seen. */
     private int highestOverallScore = 0;
@@ -35,39 +49,25 @@ public class GameScreen extends ScreenAdapter {
     private float delayTimer;
 
     /** Left-side bound of the map for spawning hazards/platforms. */
-    private int leftBounds;
+    private final int leftBounds;
 
     /** Right-side bound of the map for spawning hazards/platforms. */
-    private int rightBounds;
+    private final int rightBounds;
 
     /** The camera attached to this screen. */
-    private OrthographicCamera camera;
+    private final OrthographicCamera camera;
 
     /** Map renderer. */
-    private TiledMapRenderer renderer;
-
-    // All textures the game should use.
-    private Texture bus;
-    private Texture raceCar;
-    private Texture yellowCar;
-    private Texture turtle;
-    private Texture shortLog;
-    private Texture mediumLog;
-    private Texture longLog;
-    private Texture death;
-    private Texture catBack;
-    private Texture catFront;
-    private Texture catLeft;
-    private Texture catRight;
+    private final TiledMapRenderer renderer;
 
     /** List of all hazards in the game. */
-    private ArrayList<Hazard> hazards;
+    private final ArrayList<Hazard> hazards;
 
     /** List of all agents in the game. */
-    private ArrayList<Agent> agents;
+    private final ArrayList<Agent> agents;
 
     /** Population of all organisms in the game. */
-    private Population population;
+    private final Population population;
 
     /** Keeps track of if we've already performed natural selection for this generation. */
     private boolean performedNS;
@@ -78,30 +78,16 @@ public class GameScreen extends ScreenAdapter {
      *             need be.
      */
     public GameScreen(final MainGame game) {
-        this.game = game;
+        GAME = game;
 
         // Setting up some needed game variables.
         delayTimer = 0f;
         leftBounds = (-32 * 5);
-        rightBounds = this.game.getWidth() + (32 * 5);
-
-        // Setting up the textures.
-        bus         = new Texture("core/assets/bus.png");
-        raceCar     = new Texture("core/assets/racecar.png");
-        yellowCar   = new Texture("core/assets/yellow_car.png");
-        turtle      = new Texture("core/assets/turtle.png");
-        shortLog    = new Texture("core/assets/log3.png");
-        mediumLog   = new Texture("core/assets/log4.png");
-        longLog     = new Texture("core/assets/log5.png");
-        death       = new Texture("core/assets/death.png");
-        catBack     = new Texture("core/assets/cat_back.png");
-        catFront    = new Texture("core/assets/cat_front.png");
-        catLeft     = new Texture("core/assets/cat_left.png");
-        catRight    = new Texture("core/assets/cat_right.png");
+        rightBounds = this.GAME.getWidth() + (32 * 5);
 
         // Setting up this screens camera.
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, this.game.getWidth(), this.game.getHeight());
+        camera.setToOrtho(false, GAME.getWidth(), GAME.getHeight());
 
         // Creating the map objects.
         hazards = new ArrayList<>(NUM_AGENTS);
@@ -112,7 +98,7 @@ public class GameScreen extends ScreenAdapter {
         spawnAgents();
 
         // Assigning our constructed agents to our population.
-        population = new Population(agents, hazards.size(), 5);
+        population = new Population(NUM_AGENTS, hazards.size(), 5);
         performedNS = false;
 
         // Creating the tiled map background.
@@ -125,7 +111,7 @@ public class GameScreen extends ScreenAdapter {
      */
     private void spawnAgents() {
         for(int i = 0; i < NUM_AGENTS; i++) {
-            Agent agent = new Agent(i, catBack, hazards.size(), game.getWidth() / 2f);
+            Agent agent = new Agent(catBack, hazards.size(), GAME.getWidth() / 2f);
             agents.add(agent);
         }
     }
@@ -136,25 +122,25 @@ public class GameScreen extends ScreenAdapter {
      */
     private void spawnMapObjects() {
         // Hazards on the seventh row from the bottom.
-        hazards.add(new Hazard(32, 32, -16, 32*6, yellowCar, Speeds.RIGHT_MED.speed()));
-        hazards.add(new Hazard(32, 32, -80, 32*6, yellowCar, Speeds.RIGHT_MED.speed()));
-        hazards.add(new Hazard(32, 32, leftBounds+16, 32*6, yellowCar, Speeds.RIGHT_MED.speed()));
+        hazards.add(new Hazard(32, 32, -16, 32*6, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+        hazards.add(new Hazard(32, 32, -80, 32*6, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+        hazards.add(new Hazard(32, 32, leftBounds+16, 32*6, yellowCar, Speeds.RIGHT_MED.objectSpeed));
 
         // Hazards on the eighth row from the bottom.
-        hazards.add(new Hazard(64, 32, game.getWidth(), 32*7, bus, Speeds.LEFT_SLOW.speed()));
-        hazards.add(new Hazard(64, 32, rightBounds, 32*7, bus, Speeds.LEFT_SLOW.speed()));
+        hazards.add(new Hazard(64, 32, GAME.getWidth(), 32*7, bus, Speeds.LEFT_SLOW.objectSpeed));
+        hazards.add(new Hazard(64, 32, rightBounds, 32*7, bus, Speeds.LEFT_SLOW.objectSpeed));
 
         // Hazards on the ninth row from the bottom.
-        hazards.add(new Hazard(32, 32, rightBounds, 32*8, raceCar, Speeds.LEFT_FAST.speed()));
+        hazards.add(new Hazard(32, 32, rightBounds, 32*8, raceCar, Speeds.LEFT_FAST.objectSpeed));
 
         // Hazards on the tenth row from the bottom.
-        hazards.add(new Hazard(64, 32, game.getWidth()+32, 32*9, bus, Speeds.LEFT_SLOW.speed()));
-        hazards.add(new Hazard(64, 32, rightBounds-32, 32*9, bus, Speeds.LEFT_SLOW.speed()));
+        hazards.add(new Hazard(64, 32, GAME.getWidth()+32, 32*9, bus, Speeds.LEFT_SLOW.objectSpeed));
+        hazards.add(new Hazard(64, 32, rightBounds-32, 32*9, bus, Speeds.LEFT_SLOW.objectSpeed));
 
         // Hazards on the eleventh row from the bottom.
-        hazards.add(new Hazard(32, 32, -32, 32*10, yellowCar, Speeds.RIGHT_MED.speed()));
-        hazards.add(new Hazard(32, 32, -96, 32*10, yellowCar, Speeds.RIGHT_MED.speed()));
-        hazards.add(new Hazard(32, 32, leftBounds, 32*10, yellowCar, Speeds.RIGHT_MED.speed()));
+        hazards.add(new Hazard(32, 32, -32, 32*10, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+        hazards.add(new Hazard(32, 32, -96, 32*10, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+        hazards.add(new Hazard(32, 32, leftBounds, 32*10, yellowCar, Speeds.RIGHT_MED.objectSpeed));
     }
 
     /**
@@ -178,21 +164,21 @@ public class GameScreen extends ScreenAdapter {
         renderer.render();
 
         // Tells the sprite batch to render within the camera's coordinate system.
-        game.batch.setProjectionMatrix(camera.combined);
+        GAME.batch.setProjectionMatrix(camera.combined);
 
         // Begin a new batch and draw all objects.
-        game.batch.begin();
+        GAME.batch.begin();
 
         // Draws all the hazards.
         for(Hazard hazard : hazards) {
-            game.batch.draw(hazard.getTexture(), hazard.getX(), hazard.getY());
+            GAME.batch.draw(hazard.getTexture(), hazard.getX(), hazard.getY());
         }
 
         // Draws all agents.
         for(Agent agent : agents) {
-            game.batch.setColor(agent.getColor());
-            game.batch.draw(agent.getTexture(), agent.getX(), agent.getY());
-            game.batch.setColor(Color.WHITE);
+            GAME.batch.setColor(agent.getColor());
+            GAME.batch.draw(agent.getTexture(), agent.getX(), agent.getY());
+            GAME.batch.setColor(Color.WHITE);
         }
 
         // Outputs statistics to the screen.
@@ -200,10 +186,11 @@ public class GameScreen extends ScreenAdapter {
                                      "Current High Score: %d\n" +
                                      "Generation: %d",
                                      highestOverallScore, getHighScore(), population.getGeneration());
-        game.font.draw(game.batch, stats, 4, 80);
+
+        GAME.font.draw(GAME.batch, stats, 4, 80);
 
         // Ending our sprite batch.
-        game.batch.end();
+        GAME.batch.end();
 
         // Each hazard moving.
         updateHazards(delta);
@@ -218,11 +205,11 @@ public class GameScreen extends ScreenAdapter {
         if(areAllAgentsDead()) {
             if(!performedNS) {
                 for (Agent agent : agents) {
-                    population.assignFitness(agent.getId(), agent.getScore());
+                    population.assignFitness(agent.getID(), agent.getScore());
                 }
                 population.naturalSelection();
                 for (Agent agent : agents) {
-                    population.assignColor(agent);
+                    agent.setColor(population.getColor(agent.getID()));
                 }
                 performedNS = true;
             }
@@ -279,7 +266,7 @@ public class GameScreen extends ScreenAdapter {
             if(!agent.isDead()) {
                 updateAgentVision(agent);
 
-                double[] output = population.getNetwork(agent.getId()).feedForward(agent.getVision());
+                double[] output = population.getNetwork(agent.getID()).feedForward(agent.getVision());
 
                 int dir = 0;
                 for(int i = 0; i < output.length; i++) {
@@ -366,12 +353,12 @@ public class GameScreen extends ScreenAdapter {
         // Make sure the agents do not escape the game bounds.
         if(agent.getX() < 0) {
             agent.setX(0);
-        } else if(agent.getX() + agent.getWidth() > game.getWidth()) {
-            agent.setX(game.getWidth() - agent.getWidth());
+        } else if(agent.getX() + agent.getWidth() > GAME.getWidth()) {
+            agent.setX(GAME.getWidth() - agent.getWidth());
         }
         if(agent.getY() < 0) {
             agent.setY(0);
-        } else if(agent.getY() >= game.getHeight()) {
+        } else if(agent.getY() >= GAME.getHeight()) {
             agent.setY(0f);
             agent.setLastY(0f);
         }
@@ -435,7 +422,7 @@ public class GameScreen extends ScreenAdapter {
             hazard.reset();
         }
         for(Agent agent : agents) {
-            agent.reset(game.getWidth() / 2f);
+            agent.reset(GAME.getWidth() / 2f);
             agent.setTexture(catBack);
         }
     }

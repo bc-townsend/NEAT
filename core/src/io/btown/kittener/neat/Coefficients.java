@@ -1,4 +1,4 @@
-package neat;
+package io.btown.kittener.neat;
 
 /**
  * This enumeration contains coefficients that are used, so they are located in one single place.
@@ -15,14 +15,14 @@ public enum Coefficients {
     // Other coefficients.
     DISJOINT_CO(1),
     WEIGHT_CO(.5),
-    COMPAT_THRESH(.3),      // Two networks are compatible if above this value.
+    COMPAT_THRESH(.3),      // Two networks are compatible if below this value.
     STALENESS_THRESH(15),    // A species is stale if above this value.
     CULL_THRESH(.5),        // Used to cull the bottom half of a species.
-    BIAS_NODE_LINK_WEIGHT(5); // The value used on the bias nodes outgoing
+    BIAS_NODE_LINK_WEIGHT(1); // The value used on the bias nodes outgoing
                                                         // links.
 
     /** The value of this coefficient. */
-    private final double value;
+    public final double value;
 
     /**
      * Coefficient constructor. Assigns the supplied value.
@@ -30,13 +30,5 @@ public enum Coefficients {
      */
     Coefficients(double value) {
         this.value = value;
-    }
-
-    /**
-     * Returns the value of the coefficient.
-     * @return The value of the coefficient.
-     */
-    public double getValue() {
-        return value;
     }
 }
