@@ -8,7 +8,7 @@ import java.util.List;
  * @author Chance Simmons and Brandon Townsend
  * @version 18 January 2020
  */
-public class Node implements Cloneable {
+public class Node {
     /** The input or bias layer should always been a value of 0. */
     private final static int INPUT_BIAS_LAYER = 0;
 
@@ -38,6 +38,14 @@ public class Node implements Cloneable {
         this.outputValue = 0.0;
         this.outgoingLinks = new ArrayList<>();
         this.layer = layer;
+    }
+
+    public Node(Node node) {
+        this.ID = node.ID;
+        this.inputValue = node.inputValue;
+        this.outputValue = node.outputValue;
+        this.outgoingLinks = new ArrayList<>();
+        this.layer = node.layer;
     }
 
     /**
@@ -166,27 +174,5 @@ public class Node implements Cloneable {
     @Override
     public int hashCode() {
         return ID;
-    }
-
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        Node copy = (Node) super.clone();
-
-        copy.outgoingLinks = new ArrayList<>();
-
-        // For the purposes of this algorithm, cloning the links creates a problem, as each link
-        // must clone its output node, which calls this method again. Therefore, we'll wait to
-        // connect the nodes in the Network's clone method.
-
-//        this.outgoingLinks.forEach(link -> {
-//            try {
-//                Link copyLink = (Link) link.clone();
-//                copy.outgoingLinks.add(copyLink);
-//            } catch (CloneNotSupportedException e) {
-//                e.printStackTrace();
-//            }
-//        });
-
-        return copy;
     }
 }

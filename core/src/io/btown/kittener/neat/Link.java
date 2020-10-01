@@ -147,12 +147,4 @@ public class Link implements Cloneable {
     public int hashCode() {
         return innovationNum;
     }
-
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        Link copy = (Link) super.clone();
-
-        copy.outputNode = (Node) this.outputNode.clone();
-        return copy;
-    }
 }

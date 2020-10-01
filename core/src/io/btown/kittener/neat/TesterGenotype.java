@@ -2,12 +2,12 @@ package io.btown.kittener.neat;
 
 public class TesterGenotype {
     public static void main(String[] args) throws CloneNotSupportedException {
-        int inputs = 2;
-        int outputs = 3;
-        Genotype g = new Genotype(inputs, outputs);
+        int inputs = 1;
+        int outputs = 2;
+        Network g = new Network(inputs, outputs);
         g.setFitness(10);
         System.out.println("finished building.");
-        Genotype c = new Genotype(g);
+        Network c = new Network(g);
         System.out.println("finished cloning.");
 //        System.out.println(c.getNode(0));
 //        System.out.println(c.getNode(8));

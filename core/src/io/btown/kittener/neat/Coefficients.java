@@ -11,6 +11,7 @@ public enum Coefficients {
     LINK_WEIGHT_MUT(.8),    // Chance that a link weight mutation can occur.
     ADD_LINK_MUT(.15),      // Chance that a new link will be added.
     ADD_NODE_MUT(.05),      // Chance that a new node will be added.
+    TOGGLE_LINK_MUT(.1),    // Chance that a link will be re-enabled.
 
     // Other coefficients.
     DISJOINT_CO(1),
