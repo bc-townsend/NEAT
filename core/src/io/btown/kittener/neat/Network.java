@@ -315,7 +315,6 @@ public class Network {
         compatibility += (Coefficients.DISJOINT_CO.value * numDisjoint) / largestNetworkSize;
         compatibility += Coefficients.WEIGHT_CO.value * avgWeightDiff;
 
-        System.out.println("compatibility > " + compatibility);
         return compatibility;
     }
 

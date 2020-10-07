@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 
 public class Species {
     static List<Color> takenColors = new ArrayList<>();
+    {
+        takenColors.add(Color.WHITE);
+    }
     private Color color;
     private List<Network> organisms;
     private final Network compatibilityNetwork;
@@ -21,11 +24,12 @@ public class Species {
         this.compatibilityNetwork = new Network(network);
         Random random = new Random();
         do {
-            float red = 0 + random.nextFloat() * 255;
-            float blue = 0 + random.nextFloat() * 255;
-            float green = 0 + random.nextFloat() * 255;
+            float red = random.nextFloat();
+            float blue = random.nextFloat();
+            float green = random.nextFloat();
             color = new Color(red, blue, green, 1);
         } while(colorAlreadyChosen(color));
+        takenColors.add(color);
         avgFitness = 0.0;
         bestAvgFitness = avgFitness;
         staleness = 0;
@@ -35,15 +39,21 @@ public class Species {
         AtomicBoolean alreadyTaken = new AtomicBoolean(false);
         takenColors.forEach(taken -> {
             float diff = Math.abs(taken.r - chosen.r + taken.b - chosen.b + taken.g - chosen.g);
-            if(diff <= 30) alreadyTaken.set(true);
+            if(diff <= .04) alreadyTaken.set(true);
         });
         return alreadyTaken.get();
     }
 
-    public void reproduce(int numBabies) {
+    public void reproduce(long numBabies) {
         List<Network> babies = new ArrayList<>();
         Network baby;
-        for(int i = 0; i < numBabies; i++) {
+
+        // Perform direct clone of the best performing organism. Can remove this and add 1 to loop if wanted.
+        if(!organisms.isEmpty()) {
+            babies.add(new Network(organisms.get(0)));
+        }
+
+        for(int i = 1; i < numBabies; i++) {
             if(Math.random() < Coefficients.CROSSOVER_THRESH.value) {
                 Network parent1 = organisms.get(new Random().nextInt(organisms.size()));
                 Network parent2 = organisms.get(new Random().nextInt(organisms.size()));
@@ -52,6 +62,7 @@ public class Species {
                 baby = new Network(organisms.get(new Random().nextInt(organisms.size())));
             }
             baby.mutate();
+            baby.setFitness(0.0);
             babies.add(baby);
         }
         organisms.clear();
@@ -59,6 +70,7 @@ public class Species {
     }
 
     public void shareFitness() {
+        avgFitness = 0;
         organisms.forEach(network -> {
             network.setFitness(network.getFitness() / organisms.size());
             avgFitness += network.getFitness();
@@ -75,10 +87,12 @@ public class Species {
     }
 
     public void cullOrganisms() {
-        organisms = organisms.stream().sorted(Comparator.comparingDouble(Network::getFitness))
+        organisms = organisms.stream().sorted(Comparator.comparingDouble(Network::getFitness).reversed())
                                         .collect(Collectors.toList());
         int i = organisms.size() - 1;
-        for(; i >= Math.ceil((i+1) * Coefficients.CULL_THRESH.value); i--) {
+        double other = Math.ceil((i+1) * Coefficients.CULL_THRESH.value);
+        int numToCull = (int) Math.ceil((i+1) * Coefficients.CULL_THRESH.value);
+        for(; i >= numToCull; i--) {
             organisms.remove(i);
         }
     }
