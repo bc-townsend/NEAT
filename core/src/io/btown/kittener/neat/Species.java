@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class Species {
     static List<Color> takenColors = new ArrayList<>();
-    {
+    static {
         takenColors.add(Color.WHITE);
     }
     private Color color;
@@ -95,6 +95,10 @@ public class Species {
         for(; i >= numToCull; i--) {
             organisms.remove(i);
         }
+    }
+
+    public void addOrganisms(List<Network> networks) {
+        organisms.addAll(networks);
     }
 
     public void addOrganism(Network network) {

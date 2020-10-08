@@ -79,25 +79,54 @@ public class Population {
         AtomicReference<Double> maxCompatibilityValue = new AtomicReference<>();
 
         // FIXME: 10/7/20 See if there is a different way to perform this nested loop. It just takes a long time.
+        speciesList.forEach(species -> {
+            Network test = species.getCompatibilityNetwork();
+            List<Network> compatibleNetworks = population.parallelStream()
+                                                        .filter(network -> network.isCompatibleTo(test))
+                                                        .collect(Collectors.toList());
+            species.addOrganisms(compatibleNetworks);
+            population.removeAll(compatibleNetworks);
+        });
 
-        population.forEach(network -> {
-            maxCompatible.set(null);
-            maxCompatibilityValue.set(Coefficients.COMPAT_THRESH.value);
-
-            speciesList.parallelStream().forEach(species -> {
-                double value = network.getCompatibilityValue(species.getCompatibilityNetwork());
-                if(value < maxCompatibilityValue.get()) {
-                    maxCompatibilityValue.set(value);
-                    maxCompatible.set(species);
+        Species bestSpecies;
+        double bestValue;
+        double currentValue;
+        for(Network network : population) {
+            bestSpecies = null;
+            bestValue = Coefficients.COMPAT_THRESH.value;
+            for(Species species : speciesList) {
+                currentValue = network.getCompatibilityValue(species.getCompatibilityNetwork());
+                if(currentValue < bestValue) {
+                    bestSpecies = species;
+                    bestValue = currentValue;
                 }
-            });
+            }
 
-            if(maxCompatible.get() != null) {
-                maxCompatible.get().addOrganism(network);
+            if(bestSpecies != null) {
+                bestSpecies.addOrganism(network);
             } else {
                 speciesList.add(new Species(network));
             }
-        });
+        }
+
+//        population.forEach(network -> {
+//            maxCompatible.set(null);
+//            maxCompatibilityValue.set(Coefficients.COMPAT_THRESH.value);
+//
+//            speciesList.parallelStream().forEach(species -> {
+//                double value = network.getCompatibilityValue(species.getCompatibilityNetwork());
+//                if(value < maxCompatibilityValue.get()) {
+//                    maxCompatibilityValue.set(value);
+//                    maxCompatible.set(species);
+//                }
+//            });
+//
+//            if(maxCompatible.get() != null) {
+//                maxCompatible.get().addOrganism(network);
+//            } else {
+//                speciesList.add(new Species(network));
+//            }
+//        });
     }
 
     private void speciesFitnessAndStaleness() {
@@ -133,7 +162,7 @@ public class Population {
     private void calcAvgPopFitness() {
         avgPopFitness = 0.0;
         speciesList.forEach(species -> avgPopFitness += species.getAvgFitness());
-        avgPopFitness /= population.size();
+        avgPopFitness /= NUM_AGENTS;
     }
 
     private void cullSpecies() {

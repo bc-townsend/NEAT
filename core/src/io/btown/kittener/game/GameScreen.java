@@ -176,7 +176,7 @@ public class GameScreen extends ScreenAdapter {
 
         // Draws all agents.
         for(Agent agent : agents) {
-            GAME.batch.setColor(agent.getColor());
+            if(!agent.isDead()) GAME.batch.setColor(agent.getColor());
             GAME.batch.draw(agent.getTexture(), agent.getX(), agent.getY());
             GAME.batch.setColor(Color.WHITE);
         }
@@ -203,24 +203,25 @@ public class GameScreen extends ScreenAdapter {
 
         // If all agents are dead, set the final fitness values for this generation and reset.
         if(areAllAgentsDead()) {
-            if(!performedNS) {
-                for (Agent agent : agents) {
-                    population.assignFitness(agent.getID(), agent.getScore());
-                }
-                population.naturalSelection();
-                performedNS = true;
-            }
-            if(delayTimer >= 0f) {
+            if (!performedNS) {
+                performNaturalSelection();
+            } else {
                 for (Agent agent : agents) {
                     agent.setColor(population.getColor(agent.getID()));
                 }
-                resetGame();
                 population.incrementGeneration();
                 performedNS = false;
+                resetGame();
             }
-        } else {
-            delayTimer = 0;
         }
+    }
+
+    private void performNaturalSelection() {
+        for (Agent agent : agents) {
+            population.assignFitness(agent.getID(), agent.getScore());
+        }
+        population.naturalSelection();
+        performedNS = true;
     }
 
     /**
@@ -406,12 +407,14 @@ public class GameScreen extends ScreenAdapter {
      * @return True if all agents are dead, false otherwise.
      */
     private boolean areAllAgentsDead() {
-        for(Agent agent : agents) {
-            if(!agent.isDead()) {
-                return false;
-            }
-        }
-        return true;
+        long numDead = agents.parallelStream().filter(Agent::isDead).count();
+        return numDead == NUM_AGENTS;
+//        for(Agent agent : agents) {
+//            if(!agent.isDead()) {
+//                return false;
+//            }
+//        }
+//        return true;
     }
 
     /**
