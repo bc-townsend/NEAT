@@ -121,6 +121,27 @@ public class GameScreen extends ScreenAdapter {
      *      width, height, column (pixels), row (pixels), texture, and speed.
      */
     private void spawnMapObjects() {
+        // Hazards on the first row from the bottom.
+        hazards.add(new Hazard(32, 32, -16, 32*1, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+        hazards.add(new Hazard(32, 32, -80, 32*1, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+        hazards.add(new Hazard(32, 32, leftBounds+16, 32*1, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+
+        // Hazards on the second row from the bottom.
+        hazards.add(new Hazard(64, 32, GAME.getWidth(), 32*2, bus, Speeds.LEFT_SLOW.objectSpeed));
+        hazards.add(new Hazard(64, 32, rightBounds, 32*2, bus, Speeds.LEFT_SLOW.objectSpeed));
+
+        // Hazards on the third row from the bottom.
+        hazards.add(new Hazard(32, 32, rightBounds, 32*3, raceCar, Speeds.LEFT_FAST.objectSpeed));
+
+        // Hazards on the fourth row from the bottom.
+//        hazards.add(new Hazard(64, 32, GAME.getWidth()+32, 32*4, bus, Speeds.LEFT_SLOW.objectSpeed));
+//        hazards.add(new Hazard(64, 32, rightBounds-32, 32*4, bus, Speeds.LEFT_SLOW.objectSpeed));
+
+        // Hazards on the fourth row from the bottom.
+        hazards.add(new Hazard(32, 32, -32, 32*4, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+        hazards.add(new Hazard(32, 32, -96, 32*4, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+        hazards.add(new Hazard(32, 32, leftBounds, 32*4, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+
         // Hazards on the seventh row from the bottom.
         hazards.add(new Hazard(32, 32, -16, 32*6, yellowCar, Speeds.RIGHT_MED.objectSpeed));
         hazards.add(new Hazard(32, 32, -80, 32*6, yellowCar, Speeds.RIGHT_MED.objectSpeed));
@@ -175,8 +196,13 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Draws all agents.
+        agents.stream().filter(Agent::isDead).forEach(agent -> {
+            Color color = agent.getColor();
+            if(delayTimer > 10f) agent.setColor(new Color(color.r, color.g, color.b, 0.3f));
+        });
+        if(delayTimer > 10f) delayTimer = 0f;
         for(Agent agent : agents) {
-            if(!agent.isDead()) GAME.batch.setColor(agent.getColor());
+            GAME.batch.setColor(agent.getColor());
             GAME.batch.draw(agent.getTexture(), agent.getX(), agent.getY());
             GAME.batch.setColor(Color.WHITE);
         }
@@ -205,6 +231,7 @@ public class GameScreen extends ScreenAdapter {
         if(areAllAgentsDead()) {
             if (!performedNS) {
                 performNaturalSelection();
+
             } else {
                 for (Agent agent : agents) {
                     agent.setColor(population.getColor(agent.getID()));

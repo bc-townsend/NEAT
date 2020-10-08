@@ -30,25 +30,21 @@ public class Population {
     }
 
     public void naturalSelection() {
-        long start = System.currentTimeMillis();
+
         System.out.println("================================================================");
         System.out.println("Generation: " + generation);
-        System.out.println("Species Total: " + speciesList.size() + " Pop Total: " + population.size());
+        long start = System.currentTimeMillis();
         speciate();
-        System.out.println("Finish speciate: " + (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
+        System.out.println("Finish speciation in " + (System.currentTimeMillis() - start) / 1000 + " second(s).");
+        System.out.println("Total Number of Species: " + speciesList.size());
         speciesFitnessAndStaleness();
-        System.out.println("Finish Species fitness + staleness: " + (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
+        speciesList.forEach(species -> {
+            System.out.printf("Species %3d -> Orgs:%3d  Fit:%14f  Stale:%2d\n",
+                    species.id, species.getOrganisms().size(), species.getAvgFitness(), species.getStaleness());
+        });
         removeStaleSpecies();
-        System.out.println("Removed Stale Species: " + (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
         calcAvgPopFitness();
-        System.out.println("Calculated Pop Fitness: " + (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
         cullSpecies();
-        System.out.println("Culled Species: " + (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
 
         population.clear();
         speciesList.forEach(species -> {
@@ -67,7 +63,6 @@ public class Population {
             clone.mutate();
             population.add(clone);
         }
-        System.out.println("Produced next generation: " + (System.currentTimeMillis() - start));
     }
 
     private void speciate() {
@@ -79,54 +74,24 @@ public class Population {
         AtomicReference<Double> maxCompatibilityValue = new AtomicReference<>();
 
         // FIXME: 10/7/20 See if there is a different way to perform this nested loop. It just takes a long time.
-        speciesList.forEach(species -> {
-            Network test = species.getCompatibilityNetwork();
-            List<Network> compatibleNetworks = population.parallelStream()
-                                                        .filter(network -> network.isCompatibleTo(test))
-                                                        .collect(Collectors.toList());
-            species.addOrganisms(compatibleNetworks);
-            population.removeAll(compatibleNetworks);
-        });
+        population.forEach(network -> {
+            maxCompatible.set(null);
+            maxCompatibilityValue.set(Coefficients.COMPAT_THRESH.value);
 
-        Species bestSpecies;
-        double bestValue;
-        double currentValue;
-        for(Network network : population) {
-            bestSpecies = null;
-            bestValue = Coefficients.COMPAT_THRESH.value;
-            for(Species species : speciesList) {
-                currentValue = network.getCompatibilityValue(species.getCompatibilityNetwork());
-                if(currentValue < bestValue) {
-                    bestSpecies = species;
-                    bestValue = currentValue;
+            speciesList.forEach(species -> {
+                double value = network.getCompatibilityValue(species.getCompatibilityNetwork());
+                if(value < maxCompatibilityValue.get()) {
+                    maxCompatibilityValue.set(value);
+                    maxCompatible.set(species);
                 }
-            }
+            });
 
-            if(bestSpecies != null) {
-                bestSpecies.addOrganism(network);
+            if(maxCompatible.get() != null) {
+                maxCompatible.get().addOrganism(network);
             } else {
                 speciesList.add(new Species(network));
             }
-        }
-
-//        population.forEach(network -> {
-//            maxCompatible.set(null);
-//            maxCompatibilityValue.set(Coefficients.COMPAT_THRESH.value);
-//
-//            speciesList.parallelStream().forEach(species -> {
-//                double value = network.getCompatibilityValue(species.getCompatibilityNetwork());
-//                if(value < maxCompatibilityValue.get()) {
-//                    maxCompatibilityValue.set(value);
-//                    maxCompatible.set(species);
-//                }
-//            });
-//
-//            if(maxCompatible.get() != null) {
-//                maxCompatible.get().addOrganism(network);
-//            } else {
-//                speciesList.add(new Species(network));
-//            }
-//        });
+        });
     }
 
     private void speciesFitnessAndStaleness() {
@@ -138,7 +103,7 @@ public class Population {
 
     private void removeStaleSpecies() {
         List<Species> staleSpecies = speciesList.parallelStream()
-                                        .filter(species -> species.getStaleness() > Coefficients.STALENESS_THRESH.value)
+                                        .filter(species -> species.getStaleness() >= Coefficients.STALENESS_THRESH.value)
                                         .collect(Collectors.toList());
 
         // Handle the case in which all species are stale.

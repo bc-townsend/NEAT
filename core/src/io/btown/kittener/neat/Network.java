@@ -13,6 +13,7 @@ public class Network {
     private double fitness;
     private final int numInputs;
     private final int numOutputs;
+//    private Species prevSpecies;
 
     public Network(int inputNum, int outputNum) {
         allNodes = new ArrayList<>();
@@ -24,6 +25,7 @@ public class Network {
         fitness = 0;
         numInputs = inputNum;
         numOutputs = outputNum;
+//        prevSpecies = null;
 
         for(int i = 0; i < inputNum; i++) {
             Node input = new Node(i, numLayers);
@@ -64,6 +66,7 @@ public class Network {
         this.numOutputs = network.numOutputs;
         this.allNodes   = new ArrayList<>();
         this.allLinks   = new ArrayList<>();
+//        this.prevSpecies = network.prevSpecies;
 
         network.allNodes.forEach(node -> this.allNodes.add(new Node(node)));
 
@@ -381,4 +384,12 @@ public class Network {
     public void setFitness(double fitness) {
         this.fitness = fitness;
     }
+
+//    public Species getPrevSpecies() {
+//        return prevSpecies;
+//    }
+//
+//    public void setPrevSpecies(Species prevSpecies) {
+//        this.prevSpecies = prevSpecies;
+//    }
 }

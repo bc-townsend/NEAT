@@ -7,10 +7,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class Species {
+    static int idCounter;
     static List<Color> takenColors = new ArrayList<>();
     static {
         takenColors.add(Color.WHITE);
+        idCounter = 0;
     }
+    public final int id;
     private Color color;
     private List<Network> organisms;
     private final Network compatibilityNetwork;
@@ -19,8 +22,9 @@ public class Species {
     private int staleness;
 
     public Species(Network network) {
+        id = idCounter++;
         organisms = new ArrayList<>();
-        organisms.add(network);
+        this.addOrganism(network);
         this.compatibilityNetwork = new Network(network);
         Random random = new Random();
         do {
@@ -39,7 +43,7 @@ public class Species {
         AtomicBoolean alreadyTaken = new AtomicBoolean(false);
         takenColors.forEach(taken -> {
             float diff = Math.abs(taken.r - chosen.r + taken.b - chosen.b + taken.g - chosen.g);
-            if(diff <= .04) alreadyTaken.set(true);
+            if(diff <= .000001) alreadyTaken.set(true);
         });
         return alreadyTaken.get();
     }
@@ -99,10 +103,12 @@ public class Species {
 
     public void addOrganisms(List<Network> networks) {
         organisms.addAll(networks);
+//        networks.forEach(network -> network.setPrevSpecies(this));
     }
 
     public void addOrganism(Network network) {
         organisms.add(network);
+//        network.setPrevSpecies(this);
     }
 
     public Color getColor() {
@@ -123,5 +129,14 @@ public class Species {
 
     public Network getCompatibilityNetwork() {
         return compatibilityNetwork;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o instanceof Species) {
+            Species s = (Species) o;
+            return s.id == this.id;
+        }
+        return false;
     }
 }
