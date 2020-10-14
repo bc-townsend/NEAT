@@ -194,13 +194,15 @@ public class GameScreen extends ScreenAdapter {
         for(Hazard hazard : hazards) {
             GAME.batch.draw(hazard.getTexture(), hazard.getX(), hazard.getY());
         }
-
+        
         // Draws all agents.
         agents.stream().filter(Agent::isDead).forEach(agent -> {
             Color color = agent.getColor();
-            if(delayTimer > 10f) agent.setColor(new Color(color.r, color.g, color.b, 0.3f));
+            float alpha = color.a > 0 ? color.a * 0.9f : 0.1f;
+            if(delayTimer > 4f) agent.setColor(new Color(color.r, color.g, color.b, alpha));
         });
-        if(delayTimer > 10f) delayTimer = 0f;
+        if(delayTimer > 4f) delayTimer = 0;
+
         for(Agent agent : agents) {
             GAME.batch.setColor(agent.getColor());
             GAME.batch.draw(agent.getTexture(), agent.getX(), agent.getY());
