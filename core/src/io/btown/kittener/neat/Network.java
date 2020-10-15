@@ -392,4 +392,11 @@ public class Network {
 //    public void setPrevSpecies(Species prevSpecies) {
 //        this.prevSpecies = prevSpecies;
 //    }
+
+
+    @Override
+    public String toString() {
+        return String.format("\t# Nodes:%4d  # Links:%5d  Fitness: %f\n", allNodes.size(),
+                allLinks.size(), fitness);
+    }
 }

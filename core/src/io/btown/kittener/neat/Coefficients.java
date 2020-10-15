@@ -16,7 +16,7 @@ public enum Coefficients {
     // Other coefficients.
     DISJOINT_CO(1),
     WEIGHT_CO(.5),
-    COMPAT_THRESH(1),      // Two networks are compatible if below this value.
+    COMPAT_THRESH(3),      // Two networks are compatible if below this value.
     STALENESS_THRESH(15),    // A species is stale if above this value.
     CULL_THRESH(.5),        // Used to cull the bottom half of a species.
     BIAS_NODE_LINK_WEIGHT(1); // The value used on the bias nodes outgoing

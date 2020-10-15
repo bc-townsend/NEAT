@@ -18,10 +18,10 @@ public class TesterGenotype {
 
         System.out.println("compatible > " + g.isCompatibleTo(c));
         float[] inputValues = {1.0f, 10.0f};
-        double[] outputValues = g.feedForward(inputValues);
-        for(double val : outputValues) {
-            System.out.println(val);
-        }
+//        double[] outputValues = g.feedForward(inputValues);
+//        for(double val : outputValues) {
+//            System.out.println(val);
+//        }
         System.out.println(g.isFullyConnected());
     }
 }

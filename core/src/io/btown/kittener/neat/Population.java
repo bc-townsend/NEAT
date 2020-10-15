@@ -10,7 +10,7 @@ public class Population {
     private final int NUM_AGENTS;
     private int generation;
     private final List<Species> speciesList;
-    private final List<Network> population;
+    private List<Network> population;
     private double avgPopFitness;
 
     public Population(int numAgents, int input, int output) {
@@ -35,18 +35,30 @@ public class Population {
         System.out.println("Generation: " + generation);
         long start = System.currentTimeMillis();
         speciate();
-        System.out.println("Finish speciation in " + (System.currentTimeMillis() - start) / 1000 + " second(s).");
         System.out.println("Total Number of Species: " + speciesList.size());
         speciesFitnessAndStaleness();
         speciesList.forEach(species -> {
-            System.out.printf("Species %3d -> Orgs:%3d  Fit:%14f  Stale:%2d\n",
+            System.out.printf("Species %3d -> Orgs: %3d  Fit:%12.2f  Stale:%2d\n",
                     species.id, species.getOrganisms().size(), species.getAvgFitness(), species.getStaleness());
         });
         removeStaleSpecies();
         calcAvgPopFitness();
         cullSpecies();
 
-        population.clear();
+        // Handle the special case if ALL species are stale.
+        if(speciesList.isEmpty()) {
+            population = population.stream()
+                    .sorted(Comparator.comparingDouble(Network::getFitness).reversed())
+                    .collect(Collectors.toList());
+            int i = population.size() - 1;
+            int numToCull = (int) Math.ceil((i+1) * Coefficients.CULL_THRESH.value);
+            for(; i >= numToCull; i--) {
+                population.remove(i);
+            }
+        } else {
+            population.clear();
+        }
+
         speciesList.forEach(species -> {
             long numBabies = Math.round(species.getAvgFitness() / avgPopFitness);
             species.reproduce(numBabies);
@@ -73,25 +85,40 @@ public class Population {
         AtomicReference<Species> maxCompatible = new AtomicReference<>();
         AtomicReference<Double> maxCompatibilityValue = new AtomicReference<>();
 
-        // FIXME: 10/7/20 See if there is a different way to perform this nested loop. It just takes a long time.
-        population.forEach(network -> {
-            maxCompatible.set(null);
-            maxCompatibilityValue.set(Coefficients.COMPAT_THRESH.value);
-
-            speciesList.forEach(species -> {
-                double value = network.getCompatibilityValue(species.getCompatibilityNetwork());
-                if(value < maxCompatibilityValue.get()) {
-                    maxCompatibilityValue.set(value);
-                    maxCompatible.set(species);
+        for(Network n : population) {
+            boolean found = false;
+            for(Species s : speciesList) {
+                if(n.isCompatibleTo(s.getCompatibilityNetwork())) {
+                    s.addOrganism(n);
+                    found = true;
+                    break;
                 }
-            });
-
-            if(maxCompatible.get() != null) {
-                maxCompatible.get().addOrganism(network);
-            } else {
-                speciesList.add(new Species(network));
             }
-        });
+
+            if(!found) {
+                speciesList.add(new Species(n));
+            }
+        }
+
+        // FIXME: 10/7/20 See if there is a different way to perform this nested loop. It just takes a long time.
+//        population.forEach(network -> {
+//            maxCompatible.set(null);
+//            maxCompatibilityValue.set(Coefficients.COMPAT_THRESH.value);
+//
+//            speciesList.forEach(species -> {
+//                double value = network.getCompatibilityValue(species.getCompatibilityNetwork());
+//                if(value < maxCompatibilityValue.get()) {
+//                    maxCompatibilityValue.set(value);
+//                    maxCompatible.set(species);
+//                }
+//            });
+//
+//            if(maxCompatible.get() != null) {
+//                maxCompatible.get().addOrganism(network);
+//            } else {
+//                speciesList.add(new Species(network));
+//            }
+//        });
     }
 
     private void speciesFitnessAndStaleness() {
@@ -106,22 +133,8 @@ public class Population {
                                         .filter(species -> species.getStaleness() >= Coefficients.STALENESS_THRESH.value)
                                         .collect(Collectors.toList());
 
-        // Handle the case in which all species are stale.
-        if(staleSpecies.size() == speciesList.size()) {
-            Species bestPerforming = speciesList.stream()
-                                                .max(Comparator.comparingDouble(Species::getAvgFitness))
-                                                .orElse(null);
-            assert bestPerforming != null;
-            speciesList.forEach(species -> {
-                if(species.getAvgFitness() != bestPerforming.getAvgFitness()) {
-                    Species.takenColors.remove(species.getColor());
-                    speciesList.remove(species);
-                }
-            });
-        } else { // Otherwise, handle the case in which only some are stale.
-            staleSpecies.forEach(species -> Species.takenColors.remove(species.getColor()));
-            speciesList.removeAll(staleSpecies);
-        }
+        staleSpecies.forEach(species -> Species.takenColors.remove(species.getColor()));
+        speciesList.removeAll(staleSpecies);
     }
 
     private void calcAvgPopFitness() {

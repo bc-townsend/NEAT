@@ -53,7 +53,7 @@ public class Species {
         Network baby;
 
         // Perform direct clone of the best performing organism. Can remove this and add 1 to loop if wanted.
-        if(!organisms.isEmpty()) {
+        if(!organisms.isEmpty() && numBabies > 0) {
             babies.add(new Network(organisms.get(0)));
         }
 
@@ -87,6 +87,9 @@ public class Species {
             staleness = 0;
         } else {
             staleness++;
+
+            // If this species is stale and has no organisms, double the increase of staleness.
+            if(organisms.size() == 0) staleness++;
         }
     }
 
@@ -94,7 +97,6 @@ public class Species {
         organisms = organisms.stream().sorted(Comparator.comparingDouble(Network::getFitness).reversed())
                                         .collect(Collectors.toList());
         int i = organisms.size() - 1;
-        double other = Math.ceil((i+1) * Coefficients.CULL_THRESH.value);
         int numToCull = (int) Math.ceil((i+1) * Coefficients.CULL_THRESH.value);
         for(; i >= numToCull; i--) {
             organisms.remove(i);
