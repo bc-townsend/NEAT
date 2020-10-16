@@ -49,6 +49,7 @@ public class Agent extends Rectangle {
      * @param xLocation The starting x-coordinate to spawn the agent at.
      */
     public Agent(Texture texture, int arraySize, float xLocation) {
+        // X and Y are bottom left corner.
         super(xLocation, 0, 32, 16);
         ID = idCounter++;
         this.texture    = texture;

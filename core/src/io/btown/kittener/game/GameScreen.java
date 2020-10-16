@@ -121,7 +121,7 @@ public class GameScreen extends ScreenAdapter {
     private void spawnMapObjects() {
         // Hazards on the first row from the bottom.
         hazards.add(new Hazard(32, 32, -20, 32, yellowCar, Speeds.RIGHT_MED.objectSpeed));
-        hazards.add(new Hazard(32, 32, -84, 32, yellowCar, Speeds.RIGHT_MED.objectSpeed));
+//        hazards.add(new Hazard(32, 32, -84, 32, yellowCar, Speeds.RIGHT_MED.objectSpeed));
 //        hazards.add(new Hazard(32, 32, leftBounds+16, 32, yellowCar, Speeds.RIGHT_MED.objectSpeed));
 
         // Hazards on the second row from the bottom.
@@ -130,7 +130,7 @@ public class GameScreen extends ScreenAdapter {
 //        hazards.add(new Hazard(64, 32, rightBounds, 32*2, bus, Speeds.LEFT_SLOW.objectSpeed));
 
         // Hazards on the third row from the bottom.
-//        hazards.add(new Hazard(32, 32, rightBounds, 32*3, raceCar, Speeds.LEFT_FAST.objectSpeed));
+        hazards.add(new Hazard(32, 32, rightBounds, 32*3, raceCar, Speeds.LEFT_FAST.objectSpeed));
 
         // Hazards on the fourth row from the bottom.
 //        hazards.add(new Hazard(64, 32, GAME.getWidth()+32, 32*4, bus, Speeds.LEFT_SLOW.objectSpeed));
@@ -341,6 +341,8 @@ public class GameScreen extends ScreenAdapter {
         float[] vision = new float[hazards.size()];
 
         // Grab the position of the agent.
+        Vector2 agentLeft = new Vector2(agent.x, agent.y + (agent.height / 2));
+        Vector2 agentRight = new Vector2(agent.x + 32, agent.y + (agent.height / 2));
         Vector2 agentPos = new Vector2(agent.getX(), agent.getY());
         Vector2 hazardPos = new Vector2();
 
