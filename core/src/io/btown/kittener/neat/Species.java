@@ -103,14 +103,8 @@ public class Species {
         }
     }
 
-    public void addOrganisms(List<Network> networks) {
-        organisms.addAll(networks);
-//        networks.forEach(network -> network.setPrevSpecies(this));
-    }
-
     public void addOrganism(Network network) {
         organisms.add(network);
-//        network.setPrevSpecies(this);
     }
 
     public Color getColor() {

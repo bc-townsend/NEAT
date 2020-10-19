@@ -3,7 +3,6 @@ package io.btown.kittener.neat;
 import com.badlogic.gdx.graphics.Color;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class Population {
@@ -30,17 +29,17 @@ public class Population {
     }
 
     public void naturalSelection() {
-
-        System.out.println("================================================================");
-        System.out.println("Generation: " + generation);
-        long start = System.currentTimeMillis();
+        // All prints below are used for seeing what happens during speciation every generation. They could be retooled
+        // to output to a file if wanted, along with adding outputs for each stage of natural selection.
+//        System.out.println("================================================================");
+//        System.out.println("Generation: " + generation);
         speciate();
-        System.out.println("Total Number of Species: " + speciesList.size());
+//        System.out.println("Total Number of Species: " + speciesList.size());
         speciesFitnessAndStaleness();
-        speciesList.forEach(species -> {
-            System.out.printf("Species %3d -> Orgs: %3d  Fit:%12.2f  Stale:%2d\n",
-                    species.id, species.getOrganisms().size(), species.getAvgFitness(), species.getStaleness());
-        });
+//        speciesList.forEach(species -> {
+//            System.out.printf("Species %3d -> Orgs: %3d  Fit:%12.2f  Stale:%2d\n",
+//                    species.id, species.getOrganisms().size(), species.getAvgFitness(), species.getStaleness());
+//        });
         removeStaleSpecies();
         calcAvgPopFitness();
         cullSpecies();
@@ -81,10 +80,6 @@ public class Population {
         // Clear each species of its previous list of organisms.
         speciesList.forEach(species -> species.getOrganisms().clear());
 
-        // Check each organisms compatibility with an existing species.
-        AtomicReference<Species> maxCompatible = new AtomicReference<>();
-        AtomicReference<Double> maxCompatibilityValue = new AtomicReference<>();
-
         for(Network n : population) {
             boolean found = false;
             for(Species s : speciesList) {
@@ -99,26 +94,6 @@ public class Population {
                 speciesList.add(new Species(n));
             }
         }
-
-        // FIXME: 10/7/20 See if there is a different way to perform this nested loop. It just takes a long time.
-//        population.forEach(network -> {
-//            maxCompatible.set(null);
-//            maxCompatibilityValue.set(Coefficients.COMPAT_THRESH.value);
-//
-//            speciesList.forEach(species -> {
-//                double value = network.getCompatibilityValue(species.getCompatibilityNetwork());
-//                if(value < maxCompatibilityValue.get()) {
-//                    maxCompatibilityValue.set(value);
-//                    maxCompatible.set(species);
-//                }
-//            });
-//
-//            if(maxCompatible.get() != null) {
-//                maxCompatible.get().addOrganism(network);
-//            } else {
-//                speciesList.add(new Species(network));
-//            }
-//        });
     }
 
     private void speciesFitnessAndStaleness() {
@@ -148,25 +123,12 @@ public class Population {
     }
 
     public Color getColor(int index) {
-        AtomicReference<Species> maxCompatible = new AtomicReference<>();
-        AtomicReference<Double> maxCompatibilityValue = new AtomicReference<>();
         Network organism = population.get(index);
 
-        maxCompatible.set(null);
-        maxCompatibilityValue.set(Coefficients.COMPAT_THRESH.value);
-
-        speciesList.forEach(species -> {
-            double value = organism.getCompatibilityValue(species.getCompatibilityNetwork());
-            if(value <= maxCompatibilityValue.get()) {
-                maxCompatibilityValue.set(value);
-                maxCompatible.set(species);
-            }
-        });
-
-        if(maxCompatible.get() == null) {
-            return Color.WHITE;
+        for(Species species : speciesList) {
+            if(organism.isCompatibleTo(species.getCompatibilityNetwork())) return species.getColor();
         }
-        return maxCompatible.get().getColor();
+        return Color.WHITE;
     }
 
     public double[] getOutput(int index, float[] vision) {

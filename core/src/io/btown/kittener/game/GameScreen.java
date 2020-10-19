@@ -45,9 +45,6 @@ public class GameScreen extends ScreenAdapter {
     /** Variable to keep track of the highest overall score we have seen. */
     private int highestOverallScore = 0;
 
-    /** A timer in which we delay the spawning of the next generation. */
-    private float delayTimer;
-
     /** Left-side bound of the map for spawning hazards/platforms. */
     private final int leftBounds;
 
@@ -80,7 +77,6 @@ public class GameScreen extends ScreenAdapter {
         GAME = game;
 
         // Setting up some needed game variables.
-        delayTimer = 0f;
         leftBounds = (-32 * 5);
         rightBounds = this.GAME.getWidth() + (32 * 5);
 
@@ -117,6 +113,8 @@ public class GameScreen extends ScreenAdapter {
     /**
      * Helper method used to spawn various map objects. Hazards take the form of:
      *      width, height, column (pixels), row (pixels), texture, and speed.
+     * You can uncomment or add any extra that you would like. If they do not appear, the hazards beginning x location is
+     * most likely over the left or right bounds.
      */
     private void spawnMapObjects() {
         // Hazards on the first row from the bottom.
@@ -169,15 +167,11 @@ public class GameScreen extends ScreenAdapter {
      */
     @Override
     public void render(float delta) {
-        // Add time to our delayTimer
-        delayTimer += delta;
-
         // Clear the screen with a specified color.
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Tells the camera to update its matrices. Don't believe this is needed, as the camera
-        // does not move.
+        // Tells the camera to update its matrices. Don't believe this is needed, as the camera does not move.
 //        camera.update();
 
         // Rendering the tiled map.
@@ -192,20 +186,12 @@ public class GameScreen extends ScreenAdapter {
 
         // Draws all the hazards.
         hazards.forEach(hazard -> GAME.batch.draw(hazard.getTexture(), hazard.x, hazard.y));
-//        for(Hazard hazard : hazards) {
-//            GAME.batch.draw(hazard.getTexture(), hazard.getX(), hazard.getY());
-//        }
 
         agents.forEach(agent -> {
             GAME.batch.setColor(agent.getColor());
             GAME.batch.draw(agent.getTexture(), agent.x, agent.y);
             GAME.batch.setColor(Color.WHITE);
         });
-//        for(Agent agent : agents) {
-//            GAME.batch.setColor(agent.getColor());
-//            GAME.batch.draw(agent.getTexture(), agent.getX(), agent.getY());
-//            GAME.batch.setColor(Color.WHITE);
-//        }
 
         // Outputs statistics to the screen.
         String stats = String.format("Overall High Score: %d\n" +
@@ -218,6 +204,8 @@ public class GameScreen extends ScreenAdapter {
         // Ending our sprite batch.
         GAME.batch.end();
 
+        // This if statement prevents a rendering lag at the beginning of a generation. Won't affect results if it is
+        // removed, but does make the game look laggy when it should not appear that way.
         if(gameReset) {
             gameReset = false;
         } else {
@@ -231,13 +219,12 @@ public class GameScreen extends ScreenAdapter {
             checkCollisions();
         }
 
-        // Modify agent color if they are dead.
+        // Apply opacity to the agent's color if they are dead.
         agents.parallelStream().filter(Agent::isDead).forEach(agent -> {
             Color color = agent.getColor();
-            float alpha = color.a > 0 ? color.a * 0.9f : 0.1f;
-            if(delayTimer > 4f) agent.setColor(new Color(color.r, color.g, color.b, alpha));
+            float alpha = color.a > 0.1f ? color.a * 0.99f : 0.1f;
+            agent.setColor(new Color(color.r, color.g, color.b, alpha));
         });
-        if(delayTimer > 4f) delayTimer = 0;
 
         // If all agents are dead, set the final fitness values for this generation and reset.
         if(areAllAgentsDead()) {
@@ -264,8 +251,10 @@ public class GameScreen extends ScreenAdapter {
      */
     private void checkCollisions() {
         for(Agent agent : agents) {
+
             if(!agent.isDead()) {
                 for(Hazard hazard : hazards) {
+
                     if(hazard.overlaps(agent)) {
                         agent.setTexture(death);
                         agent.setDead(true);
@@ -283,6 +272,7 @@ public class GameScreen extends ScreenAdapter {
         for(Hazard hazard : hazards) {
             hazard.setX(hazard.getX() + (hazard.getSpeed() * delta));
 
+            // Wrapping the hazards around the screen. Simulates "respawning".
             if(hazard.getX() > rightBounds) {
                 hazard.setX(leftBounds);
             } else if(hazard.getX() < leftBounds) {
@@ -340,22 +330,18 @@ public class GameScreen extends ScreenAdapter {
     private void updateAgentVision(Agent agent) {
         float[] vision = new float[hazards.size()];
 
-        // Grab the position of the agent.
-        Vector2 agentLeft = new Vector2(agent.x, agent.y + (agent.height / 2));
-        Vector2 agentRight = new Vector2(agent.x + 32, agent.y + (agent.height / 2));
-        Vector2 agentPos = new Vector2(agent.getX(), agent.getY());
-        Vector2 hazardPos = new Vector2();
+        // Grab the position of the agent's center.
+        Vector2 agentCenter = new Vector2();
+        agentCenter = agent.getCenter(agentCenter);
+        Vector2 hazardCenter = new Vector2();
 
         for(int i = 0; i < hazards.size(); i++) {
             Hazard hazard = hazards.get(i);
-            hazardPos.set(hazard.getX(), hazard.getY());
+            hazardCenter = hazard.getCenter(hazardCenter);
 
-            // Set the value in our vision array to the distance between the agent and all hazards.
-            // NOTE: I'm dividing by 32 as that's the tile length and I want to reduce the values
-            // of the distances, as they seem very large initially.
-            vision[i] = hazardPos.dst(agentPos) / 32;
+            // Comparing the distances between our agent and all the hazards on the game board.
+            vision[i] = hazardCenter.dst(agentCenter);
         }
-
         agent.setVision(vision);
     }
 
@@ -446,12 +432,6 @@ public class GameScreen extends ScreenAdapter {
     private boolean areAllAgentsDead() {
         long numDead = agents.parallelStream().filter(Agent::isDead).count();
         return numDead == NUM_AGENTS;
-//        for(Agent agent : agents) {
-//            if(!agent.isDead()) {
-//                return false;
-//            }
-//        }
-//        return true;
     }
 
     /**
@@ -459,17 +439,11 @@ public class GameScreen extends ScreenAdapter {
      */
     private void resetGame() {
         hazards.parallelStream().forEach(Hazard::reset);
-//        for(Hazard hazard : hazards) {
-//            hazard.reset();
-//        }
+
         agents.parallelStream().forEach(agent -> {
             agent.reset(GAME.getWidth() / 2f);
             agent.setTexture(catBack);
         });
-//        for(Agent agent : agents) {
-//            agent.reset(GAME.getWidth() / 2f);
-//            agent.setTexture(catBack);
-//        }
     }
 
     /**
