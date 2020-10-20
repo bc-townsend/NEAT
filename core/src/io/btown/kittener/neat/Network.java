@@ -1,10 +1,13 @@
 package io.btown.kittener.neat;
 
+import com.badlogic.gdx.graphics.Color;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Network {
+    public static double compatThreshold = Coefficients.COMPAT_THRESH.value;
     private final List<Node> allNodes;
     private final List<Link> allLinks;
     private static Map<Integer, Link> innovation;
@@ -13,6 +16,7 @@ public class Network {
     private double fitness;
     private final int numInputs;
     private final int numOutputs;
+    private Color color;
 //    private Species prevSpecies;
 
     public Network(int inputNum, int outputNum) {
@@ -25,6 +29,7 @@ public class Network {
         fitness = 0;
         numInputs = inputNum;
         numOutputs = outputNum;
+        color = Color.WHITE;
 //        prevSpecies = null;
 
         for(int i = 0; i < inputNum; i++) {
@@ -66,6 +71,7 @@ public class Network {
         this.numOutputs = network.numOutputs;
         this.allNodes   = new ArrayList<>();
         this.allLinks   = new ArrayList<>();
+        color = network.color;
 //        this.prevSpecies = network.prevSpecies;
 
         network.allNodes.forEach(node -> this.allNodes.add(new Node(node)));
@@ -322,7 +328,7 @@ public class Network {
     }
 
     public boolean isCompatibleTo(Network network) {
-        return getCompatibilityValue(network) <= Coefficients.COMPAT_THRESH.value;
+        return getCompatibilityValue(network) <= Network.compatThreshold;
     }
 
     private int getNumDisjointLinks(Network network) {
@@ -385,7 +391,15 @@ public class Network {
         this.fitness = fitness;
     }
 
-//    public Species getPrevSpecies() {
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    //    public Species getPrevSpecies() {
 //        return prevSpecies;
 //    }
 //

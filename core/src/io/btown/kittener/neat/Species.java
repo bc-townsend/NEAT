@@ -11,7 +11,7 @@ public class Species {
     static List<Color> takenColors = new ArrayList<>();
     static {
         takenColors.add(Color.WHITE);
-        idCounter = 0;
+        idCounter = 1;
     }
     public final int id;
     private Color color;
@@ -34,6 +34,7 @@ public class Species {
             color = new Color(red, blue, green, 1);
         } while(colorAlreadyChosen(color));
         takenColors.add(color);
+        network.setColor(color);
         avgFitness = 0.0;
         bestAvgFitness = avgFitness;
         staleness = 0;
@@ -43,7 +44,7 @@ public class Species {
         AtomicBoolean alreadyTaken = new AtomicBoolean(false);
         takenColors.forEach(taken -> {
             float diff = Math.abs(taken.r - chosen.r + taken.b - chosen.b + taken.g - chosen.g);
-            if(diff <= .000001) alreadyTaken.set(true);
+            if(diff <= 0.001f) alreadyTaken.set(true);
         });
         return alreadyTaken.get();
     }
@@ -54,10 +55,13 @@ public class Species {
 
         // Perform direct clone of the best performing organism. Can remove this and add 1 to loop if wanted.
         if(!organisms.isEmpty() && numBabies > 0) {
-            babies.add(new Network(organisms.get(0)));
+            baby = new Network(organisms.get(0));
+            baby.setFitness(0.0);
+            baby.setColor(color);
+            babies.add(baby);
         }
 
-        for(int i = 1; i < numBabies; i++) {
+        for(int i = 1; i < numBabies && !organisms.isEmpty(); i++) {
             if(Math.random() < Coefficients.CROSSOVER_THRESH.value) {
                 Network parent1 = organisms.get(new Random().nextInt(organisms.size()));
                 Network parent2 = organisms.get(new Random().nextInt(organisms.size()));
@@ -67,6 +71,7 @@ public class Species {
             }
             baby.mutate();
             baby.setFitness(0.0);
+            baby.setColor(color);
             babies.add(baby);
         }
         organisms.clear();
@@ -89,7 +94,7 @@ public class Species {
             staleness++;
 
             // If this species is stale and has no organisms, double the increase of staleness.
-            if(organisms.size() == 0) staleness++;
+            if(organisms.size() == 0) staleness += 15;
         }
     }
 
@@ -97,8 +102,8 @@ public class Species {
         organisms = organisms.stream().sorted(Comparator.comparingDouble(Network::getFitness).reversed())
                                         .collect(Collectors.toList());
         int i = organisms.size() - 1;
-        int numToCull = (int) Math.ceil((i+1) * Coefficients.CULL_THRESH.value);
-        for(; i >= numToCull; i--) {
+        int numToCull = (int) Math.floor((organisms.size()) * Coefficients.CULL_THRESH.value);
+        for(; i > numToCull; i--) {
             organisms.remove(i);
         }
     }

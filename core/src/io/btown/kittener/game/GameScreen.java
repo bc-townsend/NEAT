@@ -128,7 +128,7 @@ public class GameScreen extends ScreenAdapter {
 //        hazards.add(new Hazard(64, 32, rightBounds, 32*2, bus, Speeds.LEFT_SLOW.objectSpeed));
 
         // Hazards on the third row from the bottom.
-        hazards.add(new Hazard(32, 32, rightBounds, 32*3, raceCar, Speeds.LEFT_FAST.objectSpeed));
+//        hazards.add(new Hazard(32, 32, rightBounds, 32*3, raceCar, Speeds.LEFT_FAST.objectSpeed));
 
         // Hazards on the fourth row from the bottom.
 //        hazards.add(new Hazard(64, 32, GAME.getWidth()+32, 32*4, bus, Speeds.LEFT_SLOW.objectSpeed));

@@ -17,8 +17,9 @@ public enum Coefficients {
     DISJOINT_CO(1),
     WEIGHT_CO(.5),
     COMPAT_THRESH(3),      // Two networks are compatible if below this value.
+    COMPAT_MOD(0.3),        // Adjusts the compatibility value by this if we're not hitting our target species number.
     STALENESS_THRESH(15),    // A species is stale if above this value.
-    CULL_THRESH(.5),        // Used to cull the bottom half of a species.
+    CULL_THRESH(.2),        // The percentage of organisms in a species we want to reproduce.
     BIAS_NODE_LINK_WEIGHT(1); // The value used on the bias nodes outgoing
                                                         // links.
 
