@@ -83,9 +83,9 @@ public class Population {
 
         // Remove all of this generation's species so that we can create next generations species for the adjusted
         // compatibility values.
-        Species.idCounter = 1;
-        speciesList.forEach(species -> Species.takenColors.remove(species.getColor()));
-        speciesList.clear();
+//        Species.idCounter = 1;
+//        speciesList.forEach(species -> Species.takenColors.remove(species.getColor()));
+//        speciesList.clear();
     }
 
     private void speciate() {
